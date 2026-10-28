@@ -1,26 +1,33 @@
-# FLX.AI — Cross-Device Demo
+# FLX.AI — Minimal, Free-First Web Assistant
 
-A responsive Flask web app based on the FLX.AI interface. It is designed to be hosted and opened from a browser on laptops, desktops, tablets, and phones.
+A responsive Flask web app with a single sound-reactive reactor orb, a bottom command bar, sample commands, optional browser voice input, and an optional Gemini AI response backend.
 
-## Important: Demo Mode
+## What works without an AI API
 
-This hosted version **does not control the visitor's actual computer**. Commands for volume, brightness, applications, files, Wi-Fi, Bluetooth, screenshots, and power controls return a clearly labelled simulation. This is intentional: a cloud-hosted website cannot directly run Windows commands on each visitor's device.
+- Safe arithmetic such as `What is 125 * 8?`
+- Device-local date and time
+- Google and YouTube search links
+- Basic help and greetings
+- Simulated desktop commands such as volume, brightness, opening apps, files, Wi-Fi, and power actions
+- Microphone-driven orb animation while voice mode is active
 
-## Features
+The hosted site cannot directly control the visitor's computer. Those actions remain clearly labelled as Demo Mode unless a separate local companion app is built later. The microphone is requested only when the visitor clicks the microphone button; sound levels are processed locally in the browser and audio is not uploaded by the sound visualizer. If voice recognition is available, the browser's speech-recognition service may process speech according to that browser/provider's rules.
 
-- Responsive dark futuristic interface
-- Command chat UI and quick-command buttons
-- Optional browser speech recognition (browser support varies)
-- Basic arithmetic calculator with safe parsing (no `eval`)
-- Browser-local time/date responses
-- Google and YouTube searches returned as clickable links
-- Simulated responses for local computer controls
-- `/health` endpoint for deployment checks
-- No third-party browser-side libraries
+## Optional free AI answers (Gemini API)
 
-## Run locally (optional test)
+The app uses Google's `gemini-2.5-flash-lite` through the API only if `GEMINI_API_KEY` is configured. Without a key, it still supports the non-AI commands above and responds with a note about the optional AI feature.
 
-Python 3.10+ is recommended.
+1. Open Google AI Studio: https://aistudio.google.com/app/apikey
+2. Create an API key for the Gemini API. Check the current free-tier models, limits, and terms before use: https://ai.google.dev/gemini-api/docs/pricing
+3. In Render, open your FLX.AI Web Service → **Environment** → **Add Environment Variable**.
+4. Set **Key** to `GEMINI_API_KEY` and **Value** to your key. Save changes and redeploy if prompted.
+5. Never put the key in `app.py`, `index.html`, GitHub, screenshots, or public messages. Keep the API on its free tier; do not enable billing. Free-tier limits may change, and Google says free-tier content may be used to improve its products, so don't send private or sensitive information.
+
+If the key is absent or the free-tier limit is reached, the app falls back to the built-in commands or gives a temporary-unavailable message. No paid API is required to run the base app.
+
+## Run locally (optional)
+
+Python 3.10+ recommended.
 
 ```bash
 python -m venv .venv
@@ -34,41 +41,19 @@ python -m pip install -r requirements.txt
 python app.py
 ```
 
-Then open `http://127.0.0.1:5000`.
+Open `http://127.0.0.1:5000`.
 
-## Deploy online with Render
+## Deploy / update on Render
 
-You will need a GitHub account and a Render account. You do **not** need to install Python or project libraries on the demonstration computer.
-
-1. Extract this ZIP into a folder named `FLX_AI_Cross_Device`.
-2. Create a new GitHub repository (for example, `flx-ai-demo`).
-3. Upload the contents of this folder to the repository. Make sure `app.py`, `requirements.txt`, and `render.yaml` are in the repository's root, and `index.html` is inside `templates/`.
-4. Open the Render dashboard: https://dashboard.render.com/
-5. Choose **New → Web Service** and connect the repository.
-6. Render should detect the `render.yaml` settings. If it asks you to configure them, use:
-   - **Runtime:** Python
-   - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `gunicorn app:app`
-7. Create/deploy the service and wait for the build to finish.
-8. Open the public `https://...onrender.com` URL Render gives you.
-9. Test `help`, `What is 125 * 8?`, `Search Google for artificial intelligence`, and `Increase volume`.
-10. Share that URL with your teacher or open it on the demonstration computer.
-
-Render's free web services can sleep after a period of inactivity, so the first visit after a quiet period may take a little time to load. Check the current plan limits on Render before the demonstration.
-
-## Suggested demo sequence
-
-1. Open the hosted URL on the school computer.
-2. Show that the same page fits the screen without copying project files onto that computer.
-3. Type `What is 125 * 8?` to demonstrate a working utility.
-4. Type `Search Google for artificial intelligence` and click **Open link**.
-5. Type `Set brightness to 70%` and explain that the system recognizes the command but simulates it in hosted Demo Mode.
-6. Use the same URL on a phone to demonstrate responsive layout.
+1. Upload these project files to the root of the existing GitHub repository, keeping `index.html` inside `templates/`.
+2. Render settings: Build command `pip install -r requirements.txt`; Start command `gunicorn app:app`.
+3. Commit changes to GitHub. If auto-deploy is enabled, Render deploys the new commit; otherwise choose **Manual Deploy → Deploy latest commit**.
+4. Keep using the same Render URL.
 
 ## Project structure
 
 ```text
-FLX_AI_Cross_Device/
+FLX_AI_Free_Minimal/
 ├── app.py
 ├── requirements.txt
 ├── render.yaml
@@ -77,14 +62,3 @@ FLX_AI_Cross_Device/
 └── templates/
     └── index.html
 ```
-
-## Troubleshooting
-
-- **Build fails:** open the Render service's Events/Logs and check the first error. Confirm that `requirements.txt` is in the repository root.
-- **Page opens but commands fail:** visit `/health` on the same domain. It should return JSON containing `"status": "ok"`.
-- **Voice button does nothing:** speech recognition support varies by browser and permissions. Typing commands always works.
-- **Slow first load:** a free hosted service may have gone to sleep. Open the URL a few minutes before your presentation.
-
-## Safety / privacy
-
-This demo does not need access to your files, camera, microphone (unless you choose the browser voice feature), or operating-system controls. Voice input is optional and handled by the browser's speech-recognition support.
