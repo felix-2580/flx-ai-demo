@@ -11,7 +11,7 @@ import urllib.error
 
 app = Flask(__name__)
 
-# FLX.AI: responsive hosted demo. Local PC controls are deliberately simulated.
+# FLX.AI hosted assistant. Windows controls are handled only by the local companion.
 # Optional AI uses Google's Gemini API only when GEMINI_API_KEY is configured.
 # Keep API keys in the hosting provider's environment variables, never in GitHub.
 
@@ -37,7 +37,7 @@ def safe_calculate(expression):
         if isinstance(node, ast.BinOp) and type(node.op) in SAFE_OPERATORS:
             left, right = visit(node.left), visit(node.right)
             if isinstance(node.op, ast.Pow) and abs(right) > 8:
-                raise ValueError("That exponent is too large for this demo.")
+                raise ValueError("That exponent is too large.")
             result = SAFE_OPERATORS[type(node.op)](left, right)
             if abs(result) > 1e100:
                 raise ValueError("That result is too large.")
@@ -50,7 +50,7 @@ def safe_calculate(expression):
 
 
 def response(message, category="general", url=None):
-    data = {"message": message, "category": category, "demo": True}
+    data = {"message": message, "category": category}
     if url:
         data["url"] = url
     return jsonify(data)
@@ -69,11 +69,11 @@ def ask_gemini(prompt):
     payload = {
         "system_instruction": {
             "parts": [{"text": (
-                "You are FLX.AI, a concise, friendly general assistant in a school project demo. "
+                "You are FLX.AI, a concise, friendly assistant for a Windows voice-control project. "
                 "Answer clearly and helpfully. Never claim to have changed the visitor's computer, "
                 "opened local apps, accessed files, or performed actions you did not perform. "
                 "If asked to control volume, brightness, apps, files, Wi-Fi, Bluetooth, or power, "
-                "explain that this hosted website can only simulate those local controls. "
+                "explain that Windows controls must be sent to the local FLX.AI Companion running on the same computer. "
                 "Do not request passwords, API keys, or sensitive personal information."
             )}]
         },
@@ -106,7 +106,7 @@ def home():
 
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok", "mode": "demo", "ai_enabled": bool(os.environ.get("GEMINI_API_KEY"))})
+    return jsonify({"status": "ok", "service": "FLX.AI", "ai_enabled": bool(os.environ.get("GEMINI_API_KEY"))})
 
 
 @app.post("/api/command")
@@ -145,7 +145,7 @@ def command():
         return response(
             "Try: What time is it? · What is 125 * 8? · Search Google for artificial intelligence · "
             "Search YouTube for Python tutorials · Open YouTube · Increase volume · Set brightness to 70%.\n\n"
-            "Calculations, date/time, and search links work. PC controls are simulated in hosted Demo Mode.",
+            "Calculations, date/time, and web search work here. Windows controls run through the local FLX.AI Companion.",
             "help"
         )
 
@@ -196,10 +196,9 @@ def command():
                                      "wi-fi", "bluetooth", "shutdown", "restart", "lock pc", "open pycharm",
                                      "open chrome", "open edge")):
         return response(
-            "Demo Mode: I understood your system command — “" + clean + "”.\n\n"
-            "This hosted website cannot change settings or open apps on the visitor's device. "
-            "Those actions would require a separate local companion app.", "demo"
-        )
+            "This Windows command must be handled by FLX.AI Companion on the target PC. "
+            "Start the companion on that computer and send the command from the website again.", "error"
+        ), 400
 
     ai_reply = ask_gemini(clean)
     if ai_reply:
@@ -208,7 +207,7 @@ def command():
     if any(greeting in text for greeting in ("hello", "hi flx", "hey flx", "good morning", "good afternoon")):
         return response("Hello! I'm FLX.AI. Try a calculation, a web search, or ask me a question. For more examples, type help.", "general")
     if "who are you" in text or "what is flx.ai" in text:
-        return response("I'm FLX.AI, a free-first assistant demo. Calculations, date/time, and search links work without an AI API; optional AI replies are enabled when a Gemini API key is configured.", "general")
+        return response("I'm FLX.AI, a voice-controlled Windows assistant. Calculations, date/time, and web searches work without an AI API; optional AI replies are enabled when a Gemini API key is configured.", "general")
 
     return response(
         "I can handle calculations, date/time, and search commands without an API. For open-ended questions, add a free Gemini API key in Render's environment variables. Type help to see examples.",
