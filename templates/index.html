@@ -4,11 +4,56 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#050916">
-<meta name="description" content="FLX.AI — a minimal, free-first assistant demo">
+<meta name="description" content="FLX.AI — voice-controlled Windows assistant">
 <title>FLX.AI — Your AI Assistant</title>
 <style>
 :root{color-scheme:dark;--bg:#050916;--panel:rgba(10,19,43,.76);--line:rgba(94,139,255,.24);--text:#eef5ff;--muted:#91a7cf;--cyan:#20d8ff;--blue:#2764ff;--violet:#9c42ff;--green:#35f6a0;--red:#ff5e86}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;}body{min-height:100vh;min-height:100dvh;background:radial-gradient(ellipse at 50% 28%,rgba(19,72,190,.17),transparent 38%),radial-gradient(ellipse at 80% 70%,rgba(103,23,210,.1),transparent 35%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}.app{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}.topbar{height:82px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,64px);border-bottom:1px solid rgba(100,145,255,.1);background:rgba(4,8,20,.65);backdrop-filter:blur(18px)}.brand{display:flex;align-items:center;gap:12px;font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:.09em}.brand-star{font-size:31px;color:#8a62ff;text-shadow:0 0 22px #613cff}.brand small{display:block;color:#8ca6d8;font-size:10px;font-weight:500;letter-spacing:.14em;margin-top:2px}.status{display:flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid var(--line);border-radius:30px;color:#c6d7fa;background:rgba(7,16,38,.65);font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}.main{width:min(900px,94vw);margin:0 auto;flex:1;display:flex;flex-direction:column;align-items:center;padding:clamp(18px,4vh,38px) 0 0}.hero{width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;flex:0 0 auto}.orb-wrap{height:clamp(180px,30vh,290px);width:100%;display:grid;place-items:center;position:relative;isolation:isolate}.orb-wrap:after{content:"";position:absolute;z-index:-1;bottom:12%;width:210px;height:35px;border-radius:50%;background:rgba(0,111,255,.28);filter:blur(25px);transition:background .2s}.orb{--sound-level:0;position:relative;width:clamp(138px,22vh,208px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;transform:scale(calc(1 + var(--sound-level)*.13));transition:transform .07s linear,filter .25s,background .25s; background:radial-gradient(circle at 32% 23%,#27e9ff 0%,#0874ff 27%,#2613c7 58%,#17063b 78%);box-shadow:inset -12px -14px 32px rgba(2,3,32,.6),inset 8px 8px 24px rgba(153,238,255,.65),0 0 25px #095aff,0 0 65px rgba(0,74,255,.75),0 0 100px rgba(98,31,255,.35);border:1px solid rgba(130,236,255,.9)}.orb:before,.orb:after{content:"";position:absolute;inset:-9%;border-radius:50%;border:1px solid rgba(31,202,255,.75);transform:rotate(-28deg) scaleY(.38);box-shadow:0 0 16px rgba(0,139,255,.45);animation:orbit 7s linear infinite}.orb:after{inset:-14%;border-color:rgba(174,52,255,.78);transform:rotate(48deg) scaleY(.32);animation-duration:9s;animation-direction:reverse}.orb-core{width:46%;height:46%;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,rgba(29,216,255,.7),rgba(8,25,126,.8) 65%,rgba(25,5,70,.95));border:1px solid rgba(174,242,255,.35);box-shadow:0 0 28px rgba(28,177,255,.5)}.wave{display:flex;align-items:center;gap:5px;height:48px}.wave i{display:block;width:5px;border-radius:8px;background:#6cecff;box-shadow:0 0 12px #1bdfff;height:14px;animation:wave 1.2s ease-in-out infinite}.wave i:nth-child(2),.wave i:nth-child(4){height:26px;animation-delay:.15s}.wave i:nth-child(3){height:40px;animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}.wave i:nth-child(5){animation-delay:.6s}.hero h1{margin:4px 0 8px;font-size:clamp(28px,4vw,43px);font-weight:750;letter-spacing:-.035em;background:linear-gradient(90deg,#20d9ff,#7f77ff 55%,#b75bff);color:transparent;background-clip:text}.hero p{margin:0;color:#a7c2f5;font-size:clamp(13px,2vw,17px)}.hero .sub{margin-top:9px;color:#6e84b2;font-size:12px}.conversation{width:100%;max-width:760px;display:flex;flex-direction:column;gap:10px;padding:18px 8px 20px;flex:1;min-height:20px;max-height:clamp(100px,22vh,210px);overflow:auto;scrollbar-width:thin;scrollbar-color:#263e77 transparent}.message{display:flex}.message.user{justify-content:flex-end}.bubble{max-width:min(700px,88%);padding:11px 14px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:#dce9ff;font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 8px 30px rgba(0,0,0,.13)}.message.user .bubble{border-color:rgba(42,151,255,.4);background:linear-gradient(135deg,rgba(8,98,214,.2),rgba(93,35,196,.17));border-bottom-right-radius:4px}.message.ai .bubble{border-bottom-left-radius:4px}.result-link{display:inline-block;margin-top:8px;padding:7px 11px;border-radius:9px;border:1px solid rgba(32,216,255,.35);color:#5ceaff;text-decoration:none;font-size:12px}.bottom{width:100%;padding:12px 0 22px;margin-top:auto;background:linear-gradient(180deg,transparent,rgba(5,9,22,.92) 16%)}.composer{width:100%;max-width:780px;margin:0 auto}.input-shell{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid rgba(40,166,255,.75);border-radius:30px;background:rgba(8,17,39,.95);box-shadow:0 0 18px rgba(0,103,255,.13),0 0 34px rgba(83,40,255,.1);transition:border-color .2s,box-shadow .2s}.input-shell:focus-within{border-color:#49e9ff;box-shadow:0 0 24px rgba(0,171,255,.22)}#command{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);padding:12px 5px;font-size:14px}#command::placeholder{color:#6f8bbd}.round-btn{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid rgba(91,144,255,.25);background:rgba(9,27,62,.9);color:#c9e8ff;display:grid;place-items:center;font-size:19px;transition:.2s}.round-btn:hover{border-color:var(--cyan);color:#fff}.round-btn.send{background:linear-gradient(140deg,#078fff,#5c2cff);border-color:rgba(115,157,255,.8);box-shadow:0 0 18px rgba(53,100,255,.35)}.samples-label{color:#637cae;font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin:14px 4px 8px}.samples{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}.samples button{border:1px solid rgba(95,133,211,.2);background:rgba(9,17,37,.75);color:#91a9d5;padding:8px 11px;border-radius:20px;font-size:11px;transition:.18s}.samples button:hover,.samples button:focus-visible{color:#dffaff;border-color:rgba(36,214,255,.55);outline:none}.footer{text-align:center;margin-top:18px;color:#4e638d;font-size:10px;letter-spacing:.08em}.footer span{color:#7d91b6;margin:0 7px}.orb.listening{background:radial-gradient(circle at 32% 23%,#d1a1ff,#762bff 34%,#250b81 72%);box-shadow:inset -12px -14px 32px rgba(2,3,32,.6),0 0 28px #7a37ff,0 0 75px rgba(129,31,255,.75)}.orb.success{background:radial-gradient(circle at 32% 23%,#c5ffe4,#23ff9e 31%,#008f70 66%,#003c45 85%);box-shadow:inset -12px -14px 32px rgba(2,32,25,.35),0 0 30px #2dffa6,0 0 85px rgba(27,255,160,.48)}.orb.success:before,.orb.success:after{border-color:rgba(74,255,171,.8)}.orb.error{background:radial-gradient(circle at 32% 23%,#ffc0d2,#ff477f 32%,#8b124a 72%);box-shadow:0 0 30px #ff477f,0 0 80px rgba(255,40,100,.4)}.orb.error:before,.orb.error:after{border-color:rgba(255,98,145,.8)}.status.listening .dot{background:#ba70ff;box-shadow:0 0 12px #ba70ff}.status.success .dot{background:var(--green);box-shadow:0 0 12px var(--green)}@keyframes orbit{to{rotate:360deg}}@keyframes wave{0%,100%{transform:scaleY(.55);opacity:.7}50%{transform:scaleY(1.15);opacity:1}}@media(max-width:600px){.topbar{height:67px;padding:0 15px}.brand{font-size:20px}.brand-star{font-size:25px}.brand small{font-size:8px}.status{font-size:10px;padding:8px 10px}.main{padding-top:14px;width:92vw}.orb-wrap{height:clamp(160px,24vh,220px)}.orb{width:clamp(130px,23vh,170px)}.conversation{max-height:22vh;padding-top:12px}.bottom{padding-bottom:max(14px,env(safe-area-inset-bottom))}.input-shell{gap:5px;padding:6px}.round-btn{width:39px;height:39px}#command{font-size:13px;padding:10px 2px}.samples{gap:6px}.samples button{font-size:10px;padding:7px 9px}.footer{font-size:9px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
+/* ORB REFINEMENT: glossy cyan-to-violet glass sphere with a cleaner orbit */
+.orb-wrap{height:clamp(220px,34vh,320px)}
+.orb{
+  width:clamp(170px,26vh,240px);
+  background:
+    radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.78) 0%,rgba(255,255,255,.18) 7%,transparent 24%),
+    radial-gradient(ellipse at 28% 30%,rgba(40,239,255,.96) 0%,rgba(10,155,255,.78) 24%,transparent 48%),
+    radial-gradient(ellipse at 76% 35%,rgba(222,78,255,.82) 0%,rgba(112,34,255,.52) 31%,transparent 56%),
+    radial-gradient(ellipse at 50% 80%,#071c83 0%,#10106c 43%,#080a2a 74%,#04091c 100%);
+  border:1px solid rgba(157,238,255,.95);
+  box-shadow:
+    inset 10px 9px 24px rgba(255,255,255,.22),
+    inset -18px -20px 38px rgba(1,4,34,.65),
+    0 0 22px rgba(0,190,255,.85),
+    0 0 58px rgba(0,93,255,.65),
+    0 0 86px rgba(177,39,255,.28);
+}
+.orb:before{
+  inset:-8% -14%;
+  border-color:rgba(39,220,255,.95);
+  transform:rotate(-10deg) scaleY(.34);
+  box-shadow:0 0 16px rgba(0,195,255,.65);
+}
+.orb:after{
+  inset:-12% -12%;
+  border-color:rgba(190,77,255,.68);
+  transform:rotate(-10deg) scaleY(.34);
+  opacity:.65;
+  animation-duration:10s;
+}
+.orb-core{
+  width:43%;height:43%;
+  background:radial-gradient(circle at 32% 24%,rgba(32,225,255,.82),rgba(7,42,148,.8) 60%,rgba(28,5,77,.96));
+  border:1px solid rgba(177,242,255,.42);
+  box-shadow:0 0 32px rgba(0,177,255,.58),inset 0 0 18px rgba(255,255,255,.08);
+}
+.orb.success{
+  background:radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.75) 0%,transparent 22%),radial-gradient(ellipse at 30% 30%,#baffdf 0%,#20ffa0 28%,transparent 52%),radial-gradient(ellipse at 70% 65%,#007d72 0%,#003b48 70%);
+}
+.orb.listening{
+  background:radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.72) 0%,transparent 22%),radial-gradient(ellipse at 30% 30%,#d5b5ff 0%,#8b3cff 30%,transparent 55%),radial-gradient(ellipse at 72% 65%,#3213a0 0%,#090a30 75%);
+}
+@media(max-width:600px){.orb-wrap{height:clamp(190px,27vh,240px)}.orb{width:clamp(145px,25vh,185px)}}
+
 </style>
 </head>
 <body>
@@ -39,10 +84,10 @@
         <button data-command="What time is it?">What's the time?</button>
         <button data-command="Search Google for artificial intelligence">Search the web</button>
         <button data-command="Search YouTube for Python tutorials">YouTube</button>
-        <button data-command="Increase volume">Volume demo</button>
+        <button data-command="Increase volume">Increase volume</button>
         <button data-command="Help">Help</button>
       </div>
-      <div class="footer">FLX.AI <span>•</span> FREE-FIRST ASSISTANT <span>•</span> LOCAL PC CONTROLS IN DEMO MODE</div>
+      <div class="footer">FLX.AI <span>•</span> FREE-FIRST ASSISTANT <span>•</span> REAL WINDOWS CONTROLS • LOCAL COMPANION REQUIRED</div>
     </div>
   </section>
 </div>
@@ -51,7 +96,44 @@ const input=document.getElementById('command'),send=document.getElementById('sen
 let busy=false,successTimer=null,audioContext=null,analyser=null,micStream=null,visualFrame=null,recognition=null,listening=false;
 function setOrbState(state,message){clearTimeout(successTimer);orb.classList.remove('listening','success','error');statusBox.classList.remove('listening','success');if(state==='listening'){orb.classList.add('listening');statusBox.classList.add('listening');statusText.textContent=message||'Listening…';}else if(state==='success'){orb.classList.add('success');statusBox.classList.add('success');statusText.textContent='Command completed';successTimer=setTimeout(()=>{orb.classList.remove('success');statusBox.classList.remove('success');statusText.textContent='Ready when you are';},2000);}else if(state==='error'){orb.classList.add('error');statusText.textContent='Something went wrong';successTimer=setTimeout(()=>{orb.classList.remove('error');statusText.textContent='Ready when you are';},2000);}else{statusText.textContent=message||'Ready when you are';}}
 function addMessage(type,text,url){const wrapper=document.createElement('div');wrapper.className='message '+type;const bubble=document.createElement('div');bubble.className='bubble';const content=document.createElement('div');content.textContent=text;bubble.appendChild(content);if(url){try{const parsed=new URL(url);if(parsed.protocol==='https:'&&['www.google.com','www.youtube.com','chatgpt.com','github.com'].includes(parsed.hostname)){const link=document.createElement('a');link.className='result-link';link.href=parsed.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open link ↗';bubble.appendChild(link);}}catch(_){}}wrapper.appendChild(bubble);chat.appendChild(wrapper);chat.scrollTop=chat.scrollHeight;return wrapper;}
-async function executeCommand(command){command=command.trim();if(!command||busy)return;addMessage('user',command);input.value='';busy=true;send.disabled=true;const pending=addMessage('ai','Thinking…');statusText.textContent='Working on it…';try{const now=new Date();const response=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command,browser_time:new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,19)})});const data=await response.json();pending.remove();addMessage('ai',data.message||'No response received.',data.url);if(!response.ok||data.category==='error')setOrbState('error');else setOrbState('success');}catch(error){pending.remove();addMessage('ai','I couldn’t reach FLX.AI. Check the internet connection and try again.');setOrbState('error');}finally{busy=false;send.disabled=false;input.focus();}}
+function isWindowsCommand(command){
+  return /\b(volume|sound|audio|brightness|notepad|calculator|calc|paint|file explorer|explorer|task manager|settings|command prompt|wordpad|switch window|next window|change window|minimize window|maximize window|show desktop|mute)\b/i.test(command)
+    || /\b(open|launch|start)\s+(the\s+)?(notepad|calculator|calc|paint|file explorer|explorer|task manager|settings|command prompt|wordpad)\b/i.test(command);
+}
+async function executeCommand(command){
+  command=command.trim();if(!command||busy)return;
+  addMessage('user',command);input.value='';busy=true;send.disabled=true;
+  const pending=addMessage('ai','Working…');statusText.textContent='Working on it…';
+  try{
+    let response,data;
+    if(isWindowsCommand(command)){
+      try{
+        response=await fetch('http://127.0.0.1:8765/command',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({command}),signal:AbortSignal.timeout(6000)
+        });
+        data=await response.json();
+      }catch(localError){
+        pending.remove();
+        addMessage('ai','Windows Companion is not connected. Run FLXAI-Companion.exe on this same Windows PC, keep it open, then try again.');
+        setOrbState('error');
+        return;
+      }
+    }else{
+      const now=new Date();
+      response=await fetch('/api/command',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({command,browser_time:new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,19)})
+      });
+      data=await response.json();
+    }
+    pending.remove();
+    addMessage('ai',data.message||'No response received.',data.url);
+    if(!response.ok||data.category==='error')setOrbState('error');else setOrbState('success');
+  }catch(error){
+    pending.remove();addMessage('ai','I couldn’t reach FLX.AI. Check your internet connection and try again.');setOrbState('error');
+  }finally{busy=false;send.disabled=false;input.focus();}
+}
 send.addEventListener('click',()=>executeCommand(input.value));input.addEventListener('keydown',event=>{if(event.key==='Enter')executeCommand(input.value)});document.querySelectorAll('.samples button').forEach(button=>button.addEventListener('click',()=>executeCommand(button.dataset.command)));
 function stopAudioMeter(){if(visualFrame!==null)cancelAnimationFrame(visualFrame);visualFrame=null;if(micStream){micStream.getTracks().forEach(track=>track.stop());micStream=null;}if(audioContext){audioContext.close().catch(()=>{});audioContext=null;}analyser=null;orb.style.setProperty('--sound-level','0');}
 async function startAudioMeter(){try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});audioContext=new(window.AudioContext||window.webkitAudioContext)();analyser=audioContext.createAnalyser();analyser.fftSize=256;audioContext.createMediaStreamSource(micStream).connect(analyser);const values=new Uint8Array(analyser.frequencyBinCount);function tick(){if(!analyser)return;analyser.getByteTimeDomainData(values);let sum=0;for(const value of values){const centered=(value-128)/128;sum+=centered*centered;}const rms=Math.sqrt(sum/values.length);const level=Math.min(1,rms*5.5);orb.style.setProperty('--sound-level',String(level));visualFrame=requestAnimationFrame(tick);}tick();subText.textContent='Sound-reactive mode is active; audio is analysed in this browser only.';return true;}catch(error){subText.textContent='Microphone permission was not granted. You can still type commands.';return false;}}
