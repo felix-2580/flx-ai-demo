@@ -1,261 +1,64 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080b14">
-  <meta name="description" content="FLX.AI cross-device assistant demonstration">
-  <title>FLX.AI — Cross-Device Assistant</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg:#070a12; --panel:rgba(15,21,36,.82); --line:rgba(132,157,211,.18);
-      --text:#edf4ff; --muted:#8d9ab4; --cyan:#55e7ff; --violet:#9270ff;
-      --green:#62f3c2; --red:#ff7b9b;
-    }
-    * { box-sizing:border-box; }
-    html, body { margin:0; min-height:100%; }
-    body {
-      min-height:100vh; min-height:100dvh; color:var(--text);
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(ellipse at 50% -10%,rgba(85,231,255,.11),transparent 42%),
-        radial-gradient(ellipse at 100% 80%,rgba(146,112,255,.09),transparent 35%),var(--bg);
-    }
-    button,input { font:inherit; }
-    button { -webkit-tap-highlight-color:transparent; }
-    .app { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
-    .topbar {
-      display:flex; align-items:center; justify-content:space-between; gap:14px;
-      padding:17px clamp(16px,4vw,42px); border-bottom:1px solid var(--line);
-      background:rgba(7,10,18,.72); backdrop-filter:blur(18px);
-      position:sticky; top:0; z-index:3;
-    }
-    .brand { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:800; letter-spacing:.12em; }
-    .brand-mark {
-      width:34px;height:34px;display:grid;place-items:center;border-radius:11px;
-      border:1px solid rgba(85,231,255,.48); color:var(--cyan);
-      background:linear-gradient(135deg,rgba(85,231,255,.13),rgba(146,112,255,.16));
-      box-shadow:0 0 22px rgba(85,231,255,.08);
-    }
-    .brand small { color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.15em; display:block; margin-left:2px; }
-    .status { display:flex; align-items:center; gap:8px; color:var(--green); font-size:10px; letter-spacing:.13em; font-weight:700; }
-    .dot { width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green); }
-    .demo-tag { color:#ffd78a; border:1px solid rgba(255,215,138,.25); background:rgba(255,215,138,.07); padding:6px 9px; border-radius:8px; font-size:9px; letter-spacing:.12em; }
-    .main { width:min(920px,94vw); margin:0 auto; padding:18px 0 20px; display:flex; flex:1; flex-direction:column; min-height:0; }
-    .hero { display:flex; align-items:center; justify-content:center; gap:clamp(18px,4vw,34px); padding:18px 0 24px; }
-    .orb { position:relative; flex:none; width:clamp(76px,12vw,104px); aspect-ratio:1; display:grid; place-items:center; }
-    .ring { position:absolute; inset:2px; border:1px solid rgba(85,231,255,.32); border-radius:50%; animation:spin 11s linear infinite; }
-    .ring.r2 { inset:13px; border-color:rgba(146,112,255,.4); animation-duration:8s; animation-direction:reverse; }
-    .ring.r3 { inset:25px; border-style:dashed; border-color:rgba(255,94,220,.3); animation-duration:5s; }
-    .core { width:40%; aspect-ratio:1; border:1px solid var(--cyan); border-radius:12px; transform:rotate(45deg); background:linear-gradient(135deg,rgba(85,231,255,.19),rgba(146,112,255,.2)); box-shadow:0 0 28px rgba(85,231,255,.19); animation:float 4s ease-in-out infinite; }
-    .hero-copy h1 { margin:0 0 7px; font-size:clamp(21px,3vw,28px); letter-spacing:-.03em; }
-    .hero-copy p { margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
-    .hint { margin-top:9px; color:#687690; font-size:11px; line-height:1.6; }
-    .notice { display:flex; gap:10px; align-items:flex-start; padding:11px 13px; margin:0 0 14px; border:1px solid rgba(255,215,138,.17); border-radius:12px; color:#c9c4b6; background:rgba(255,215,138,.045); font-size:11px; line-height:1.5; }
-    .notice strong { color:#ffdf9e; }
-    .chat { flex:1; min-height:230px; max-height:calc(100dvh - 390px); overflow:auto; padding:5px 8px 14px; scroll-behavior:smooth; }
-    .message { display:flex; margin:10px 0; }
-    .message.user { justify-content:flex-end; }
-    .bubble { max-width:min(720px,86%); padding:12px 15px; border:1px solid var(--line); border-radius:16px; background:var(--panel); box-shadow:0 10px 35px rgba(0,0,0,.13); font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
-    .message.user .bubble { background:linear-gradient(135deg,rgba(85,231,255,.10),rgba(146,112,255,.10)); border-color:rgba(85,231,255,.23); border-bottom-right-radius:5px; }
-    .message.ai .bubble { border-bottom-left-radius:5px; }
-    .label { margin-bottom:4px; color:var(--muted); font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
-    .result-link { display:inline-flex; margin-top:10px; padding:8px 11px; border:1px solid rgba(85,231,255,.3); border-radius:9px; color:var(--cyan); text-decoration:none; font-size:12px; }
-    .result-link:hover { background:rgba(85,231,255,.08); }
-    .quick { display:flex; gap:8px; overflow-x:auto; padding:7px 2px 12px; scrollbar-width:none; }
-    .quick::-webkit-scrollbar { display:none; }
-    .quick button { flex:none; border:1px solid var(--line); background:rgba(10,14,25,.7); color:#aeb9ce; padding:9px 12px; border-radius:10px; font-size:11px; cursor:pointer; transition:.18s; }
-    .quick button:hover,.quick button:focus-visible { color:var(--cyan); border-color:rgba(85,231,255,.38); outline:none; }
-    .composer { padding:6px 0 3px; }
-    .input-shell { display:flex; align-items:center; gap:8px; padding:8px; border:1px solid rgba(110,139,210,.25); border-radius:17px; background:rgba(8,12,22,.9); box-shadow:0 12px 40px rgba(0,0,0,.22); }
-    .input-shell:focus-within { border-color:rgba(85,231,255,.48); }
-    .input-icon { width:30px; text-align:center; color:var(--cyan); font-size:18px; flex:none; }
-    #command { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font-size:14px; padding:10px 0; }
-    #command::placeholder { color:#69758c; }
-    .action { flex:none; min-width:40px; height:40px; border:1px solid var(--line); background:rgba(255,255,255,.025); color:#aab6cc; border-radius:12px; cursor:pointer; }
-    .action:hover { color:var(--cyan); border-color:rgba(85,231,255,.4); }
-    #send { color:var(--cyan); background:linear-gradient(135deg,rgba(85,231,255,.16),rgba(146,112,255,.17)); }
-    .footer { text-align:center; color:#59657b; font-size:9px; letter-spacing:.08em; margin-top:10px; }
-    .footer span { color:#8794ad; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    @keyframes float { 0%,100% { transform:rotate(45deg) translateY(0); } 50% { transform:rotate(45deg) translateY(-5px); } }
-    @media (min-height:850px) { .main { padding-top:26px; } .hero { padding:30px 0; } .chat { max-height:calc(100dvh - 430px); } }
-    @media (max-width:600px) {
-      .topbar { padding:13px 15px; }
-      .brand { gap:8px; font-size:14px; }
-      .brand-mark { width:31px;height:31px; }
-      .brand small { font-size:8px; }
-      .status { display:none; }
-      .main { width:94vw; padding-top:10px; }
-      .hero { justify-content:flex-start; gap:15px; padding:17px 4px 18px; }
-      .orb { width:74px; }
-      .hero-copy h1 { font-size:21px; }
-      .hero-copy p { font-size:11px; }
-      .hint { font-size:10px; }
-      .notice { font-size:10px; }
-      .chat { min-height:220px; max-height:calc(100dvh - 340px); padding-inline:2px; }
-      .bubble { max-width:92%; font-size:12px; padding:11px 12px; }
-      .input-shell { gap:5px; padding:6px; }
-      .input-icon { width:24px; }
-      .action { min-width:36px; height:38px; }
-      #command { font-size:13px; }
-    }
-    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050916">
+<meta name="description" content="FLX.AI — a minimal, free-first assistant demo">
+<title>FLX.AI — Your AI Assistant</title>
+<style>
+:root{color-scheme:dark;--bg:#050916;--panel:rgba(10,19,43,.76);--line:rgba(94,139,255,.24);--text:#eef5ff;--muted:#91a7cf;--cyan:#20d8ff;--blue:#2764ff;--violet:#9c42ff;--green:#35f6a0;--red:#ff5e86}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;}body{min-height:100vh;min-height:100dvh;background:radial-gradient(ellipse at 50% 28%,rgba(19,72,190,.17),transparent 38%),radial-gradient(ellipse at 80% 70%,rgba(103,23,210,.1),transparent 35%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}.app{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}.topbar{height:82px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,64px);border-bottom:1px solid rgba(100,145,255,.1);background:rgba(4,8,20,.65);backdrop-filter:blur(18px)}.brand{display:flex;align-items:center;gap:12px;font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:.09em}.brand-star{font-size:31px;color:#8a62ff;text-shadow:0 0 22px #613cff}.brand small{display:block;color:#8ca6d8;font-size:10px;font-weight:500;letter-spacing:.14em;margin-top:2px}.status{display:flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid var(--line);border-radius:30px;color:#c6d7fa;background:rgba(7,16,38,.65);font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}.main{width:min(900px,94vw);margin:0 auto;flex:1;display:flex;flex-direction:column;align-items:center;padding:clamp(18px,4vh,38px) 0 0}.hero{width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;flex:0 0 auto}.orb-wrap{height:clamp(180px,30vh,290px);width:100%;display:grid;place-items:center;position:relative;isolation:isolate}.orb-wrap:after{content:"";position:absolute;z-index:-1;bottom:12%;width:210px;height:35px;border-radius:50%;background:rgba(0,111,255,.28);filter:blur(25px);transition:background .2s}.orb{--sound-level:0;position:relative;width:clamp(138px,22vh,208px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;transform:scale(calc(1 + var(--sound-level)*.13));transition:transform .07s linear,filter .25s,background .25s; background:radial-gradient(circle at 32% 23%,#27e9ff 0%,#0874ff 27%,#2613c7 58%,#17063b 78%);box-shadow:inset -12px -14px 32px rgba(2,3,32,.6),inset 8px 8px 24px rgba(153,238,255,.65),0 0 25px #095aff,0 0 65px rgba(0,74,255,.75),0 0 100px rgba(98,31,255,.35);border:1px solid rgba(130,236,255,.9)}.orb:before,.orb:after{content:"";position:absolute;inset:-9%;border-radius:50%;border:1px solid rgba(31,202,255,.75);transform:rotate(-28deg) scaleY(.38);box-shadow:0 0 16px rgba(0,139,255,.45);animation:orbit 7s linear infinite}.orb:after{inset:-14%;border-color:rgba(174,52,255,.78);transform:rotate(48deg) scaleY(.32);animation-duration:9s;animation-direction:reverse}.orb-core{width:46%;height:46%;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,rgba(29,216,255,.7),rgba(8,25,126,.8) 65%,rgba(25,5,70,.95));border:1px solid rgba(174,242,255,.35);box-shadow:0 0 28px rgba(28,177,255,.5)}.wave{display:flex;align-items:center;gap:5px;height:48px}.wave i{display:block;width:5px;border-radius:8px;background:#6cecff;box-shadow:0 0 12px #1bdfff;height:14px;animation:wave 1.2s ease-in-out infinite}.wave i:nth-child(2),.wave i:nth-child(4){height:26px;animation-delay:.15s}.wave i:nth-child(3){height:40px;animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}.wave i:nth-child(5){animation-delay:.6s}.hero h1{margin:4px 0 8px;font-size:clamp(28px,4vw,43px);font-weight:750;letter-spacing:-.035em;background:linear-gradient(90deg,#20d9ff,#7f77ff 55%,#b75bff);color:transparent;background-clip:text}.hero p{margin:0;color:#a7c2f5;font-size:clamp(13px,2vw,17px)}.hero .sub{margin-top:9px;color:#6e84b2;font-size:12px}.conversation{width:100%;max-width:760px;display:flex;flex-direction:column;gap:10px;padding:18px 8px 20px;flex:1;min-height:20px;max-height:clamp(100px,22vh,210px);overflow:auto;scrollbar-width:thin;scrollbar-color:#263e77 transparent}.message{display:flex}.message.user{justify-content:flex-end}.bubble{max-width:min(700px,88%);padding:11px 14px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:#dce9ff;font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 8px 30px rgba(0,0,0,.13)}.message.user .bubble{border-color:rgba(42,151,255,.4);background:linear-gradient(135deg,rgba(8,98,214,.2),rgba(93,35,196,.17));border-bottom-right-radius:4px}.message.ai .bubble{border-bottom-left-radius:4px}.result-link{display:inline-block;margin-top:8px;padding:7px 11px;border-radius:9px;border:1px solid rgba(32,216,255,.35);color:#5ceaff;text-decoration:none;font-size:12px}.bottom{width:100%;padding:12px 0 22px;margin-top:auto;background:linear-gradient(180deg,transparent,rgba(5,9,22,.92) 16%)}.composer{width:100%;max-width:780px;margin:0 auto}.input-shell{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid rgba(40,166,255,.75);border-radius:30px;background:rgba(8,17,39,.95);box-shadow:0 0 18px rgba(0,103,255,.13),0 0 34px rgba(83,40,255,.1);transition:border-color .2s,box-shadow .2s}.input-shell:focus-within{border-color:#49e9ff;box-shadow:0 0 24px rgba(0,171,255,.22)}#command{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);padding:12px 5px;font-size:14px}#command::placeholder{color:#6f8bbd}.round-btn{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid rgba(91,144,255,.25);background:rgba(9,27,62,.9);color:#c9e8ff;display:grid;place-items:center;font-size:19px;transition:.2s}.round-btn:hover{border-color:var(--cyan);color:#fff}.round-btn.send{background:linear-gradient(140deg,#078fff,#5c2cff);border-color:rgba(115,157,255,.8);box-shadow:0 0 18px rgba(53,100,255,.35)}.samples-label{color:#637cae;font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin:14px 4px 8px}.samples{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}.samples button{border:1px solid rgba(95,133,211,.2);background:rgba(9,17,37,.75);color:#91a9d5;padding:8px 11px;border-radius:20px;font-size:11px;transition:.18s}.samples button:hover,.samples button:focus-visible{color:#dffaff;border-color:rgba(36,214,255,.55);outline:none}.footer{text-align:center;margin-top:18px;color:#4e638d;font-size:10px;letter-spacing:.08em}.footer span{color:#7d91b6;margin:0 7px}.orb.listening{background:radial-gradient(circle at 32% 23%,#d1a1ff,#762bff 34%,#250b81 72%);box-shadow:inset -12px -14px 32px rgba(2,3,32,.6),0 0 28px #7a37ff,0 0 75px rgba(129,31,255,.75)}.orb.success{background:radial-gradient(circle at 32% 23%,#c5ffe4,#23ff9e 31%,#008f70 66%,#003c45 85%);box-shadow:inset -12px -14px 32px rgba(2,32,25,.35),0 0 30px #2dffa6,0 0 85px rgba(27,255,160,.48)}.orb.success:before,.orb.success:after{border-color:rgba(74,255,171,.8)}.orb.error{background:radial-gradient(circle at 32% 23%,#ffc0d2,#ff477f 32%,#8b124a 72%);box-shadow:0 0 30px #ff477f,0 0 80px rgba(255,40,100,.4)}.orb.error:before,.orb.error:after{border-color:rgba(255,98,145,.8)}.status.listening .dot{background:#ba70ff;box-shadow:0 0 12px #ba70ff}.status.success .dot{background:var(--green);box-shadow:0 0 12px var(--green)}@keyframes orbit{to{rotate:360deg}}@keyframes wave{0%,100%{transform:scaleY(.55);opacity:.7}50%{transform:scaleY(1.15);opacity:1}}@media(max-width:600px){.topbar{height:67px;padding:0 15px}.brand{font-size:20px}.brand-star{font-size:25px}.brand small{font-size:8px}.status{font-size:10px;padding:8px 10px}.main{padding-top:14px;width:92vw}.orb-wrap{height:clamp(160px,24vh,220px)}.orb{width:clamp(130px,23vh,170px)}.conversation{max-height:22vh;padding-top:12px}.bottom{padding-bottom:max(14px,env(safe-area-inset-bottom))}.input-shell{gap:5px;padding:6px}.round-btn{width:39px;height:39px}#command{font-size:13px;padding:10px 2px}.samples{gap:6px}.samples button{font-size:10px;padding:7px 9px}.footer{font-size:9px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">F</div>
-      <div>FLX.AI<small>CROSS-DEVICE ASSISTANT</small></div>
-    </div>
-    <div class="status"><span class="dot"></span> WEB APP ONLINE</div>
-    <div class="demo-tag">DEMO MODE</div>
+    <div class="brand"><span class="brand-star">✦</span><div>FLX.AI<small>YOUR AI ASSISTANT</small></div></div>
+    <div class="status" id="status"><span class="dot"></span><span id="statusText">Ready when you are</span></div>
   </header>
-
   <main class="main">
     <section class="hero">
-      <div class="orb" aria-hidden="true">
-        <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div>
-      </div>
-      <div class="hero-copy">
-        <h1>How can I help?</h1>
-        <p>Your assistant interface, ready on any screen.</p>
-        <div class="hint">Try “What is 125 * 8?” · “Search Google for AI” · “Increase volume”</div>
-      </div>
+      <div class="orb-wrap"><div class="orb" id="orb" aria-label="Sound-reactive FLX.AI reactor"><div class="orb-core"><div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div></div></div>
+      <h1>Hey, I'm FLX.AI</h1>
+      <p>Your assistant. Ask a question or give me a command.</p>
+      <div class="sub" id="subText">The reactor responds to your voice while the microphone is active.</div>
     </section>
-
-    <div class="notice">
-      <span aria-hidden="true">ⓘ</span>
-      <div><strong>Demo Mode is active.</strong> Web searches and calculations work. Commands for volume, brightness, apps, files, and other local controls are simulated and will not change this device.</div>
-    </div>
-
-    <section class="chat" id="chat" aria-live="polite" aria-label="Conversation">
-      <div class="message ai"><div class="bubble"><div class="label">FLX.AI</div>Ready. I'm the cross-device demo of FLX.AI. Type <b>help</b> to see what you can try.</div></div>
-    </section>
-
-    <div class="quick" aria-label="Quick commands">
-      <button data-command="Help">⌘ Help</button>
-      <button data-command="What time is it?">◷ Time</button>
-      <button data-command="What is 125 * 8?">∑ Calculator</button>
-      <button data-command="Search Google for artificial intelligence">⌕ Search Google</button>
-      <button data-command="Search YouTube for Python tutorials">▶ YouTube</button>
-      <button data-command="Increase volume">◖ Volume demo</button>
-      <button data-command="Set brightness to 70%">☼ Brightness demo</button>
-    </div>
-
-    <section class="composer">
-      <div class="input-shell">
-        <div class="input-icon" aria-hidden="true">✦</div>
-        <input id="command" autocomplete="off" maxlength="500" placeholder="Ask FLX.AI to do something…" aria-label="Enter a command">
-        <button class="action" id="mic" title="Voice command" aria-label="Voice command">🎙</button>
-        <button class="action" id="send" title="Send command" aria-label="Send command">➤</button>
-      </div>
-      <div class="footer">FLX.AI <span>•</span> RESPONSIVE WEB DEMONSTRATION <span>•</span> LOCAL CONTROLS SIMULATED</div>
-    </section>
+    <section class="conversation" id="chat" aria-live="polite" aria-label="Conversation"></section>
   </main>
+  <section class="bottom">
+    <div class="composer">
+      <div class="input-shell">
+        <button class="round-btn" id="mic" title="Speak a command" aria-label="Speak a command">♩</button>
+        <input id="command" autocomplete="off" maxlength="500" placeholder="Type a message or command…" aria-label="Type a message or command">
+        <button class="round-btn send" id="send" title="Send command" aria-label="Send command">➤</button>
+      </div>
+      <div class="samples-label">Try a command</div>
+      <div class="samples" aria-label="Sample commands">
+        <button data-command="What is 125 * 8?">Calculate 125 × 8</button>
+        <button data-command="What time is it?">What's the time?</button>
+        <button data-command="Search Google for artificial intelligence">Search the web</button>
+        <button data-command="Search YouTube for Python tutorials">YouTube</button>
+        <button data-command="Increase volume">Volume demo</button>
+        <button data-command="Help">Help</button>
+      </div>
+      <div class="footer">FLX.AI <span>•</span> FREE-FIRST ASSISTANT <span>•</span> LOCAL PC CONTROLS IN DEMO MODE</div>
+    </div>
+  </section>
 </div>
 <script>
-const input = document.getElementById("command");
-const send = document.getElementById("send");
-const mic = document.getElementById("mic");
-const chat = document.getElementById("chat");
-let busy = false;
-
-function addMessage(type, text, url) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "message " + type;
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  if (type === "ai") {
-    const label = document.createElement("div");
-    label.className = "label";
-    label.textContent = "FLX.AI";
-    bubble.appendChild(label);
-  }
-  const content = document.createElement("div");
-  content.textContent = text;
-  bubble.appendChild(content);
-
-  if (url) {
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === "https:" &&
-          ["www.google.com", "www.youtube.com", "chatgpt.com", "github.com"].includes(parsed.hostname)) {
-        const link = document.createElement("a");
-        link.className = "result-link";
-        link.href = parsed.href;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "Open link ↗";
-        bubble.appendChild(link);
-      }
-    } catch (_) {}
-  }
-  wrapper.appendChild(bubble);
-  chat.appendChild(wrapper);
-  chat.scrollTop = chat.scrollHeight;
-  return wrapper;
-}
-
-async function executeCommand(command) {
-  command = command.trim();
-  if (!command || busy) return;
-  addMessage("user", command);
-  input.value = "";
-  busy = true;
-  send.disabled = true;
-  const pending = addMessage("ai", "Processing command…");
-  try {
-    const response = await fetch("/api/command", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({command, browser_time: (() => { const now = new Date(); return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19); })()})
-    });
-    const data = await response.json();
-    pending.remove();
-    addMessage("ai", data.message || "No response received.", data.url);
-  } catch (error) {
-    pending.remove();
-    addMessage("ai", "I couldn't reach the FLX.AI service. Check your internet connection and try again.");
-  } finally {
-    busy = false;
-    send.disabled = false;
-    input.focus();
-  }
-}
-
-send.addEventListener("click", () => executeCommand(input.value));
-input.addEventListener("keydown", event => {
-  if (event.key === "Enter") executeCommand(input.value);
-});
-document.querySelectorAll(".quick button").forEach(button => {
-  button.addEventListener("click", () => executeCommand(button.dataset.command));
-});
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-IN";
-  recognition.interimResults = false;
-  recognition.continuous = false;
-  mic.addEventListener("click", () => {
-    try { mic.textContent = "●"; recognition.start(); }
-    catch (_) { mic.textContent = "🎙"; }
-  });
-  recognition.onresult = event => {
-    const spoken = event.results[0][0].transcript;
-    input.value = spoken;
-    executeCommand(spoken);
-  };
-  recognition.onend = () => { mic.textContent = "🎙"; };
-  recognition.onerror = () => { mic.textContent = "🎙"; };
-} else {
-  mic.title = "Voice input is not supported in this browser. You can type commands instead.";
-  mic.addEventListener("click", () => addMessage("ai", "Voice input isn't supported by this browser. You can type commands instead."));
-}
+const input=document.getElementById('command'),send=document.getElementById('send'),mic=document.getElementById('mic'),chat=document.getElementById('chat'),orb=document.getElementById('orb'),statusBox=document.getElementById('status'),statusText=document.getElementById('statusText'),subText=document.getElementById('subText');
+let busy=false,successTimer=null,audioContext=null,analyser=null,micStream=null,visualFrame=null,recognition=null,listening=false;
+function setOrbState(state,message){clearTimeout(successTimer);orb.classList.remove('listening','success','error');statusBox.classList.remove('listening','success');if(state==='listening'){orb.classList.add('listening');statusBox.classList.add('listening');statusText.textContent=message||'Listening…';}else if(state==='success'){orb.classList.add('success');statusBox.classList.add('success');statusText.textContent='Command completed';successTimer=setTimeout(()=>{orb.classList.remove('success');statusBox.classList.remove('success');statusText.textContent='Ready when you are';},2000);}else if(state==='error'){orb.classList.add('error');statusText.textContent='Something went wrong';successTimer=setTimeout(()=>{orb.classList.remove('error');statusText.textContent='Ready when you are';},2000);}else{statusText.textContent=message||'Ready when you are';}}
+function addMessage(type,text,url){const wrapper=document.createElement('div');wrapper.className='message '+type;const bubble=document.createElement('div');bubble.className='bubble';const content=document.createElement('div');content.textContent=text;bubble.appendChild(content);if(url){try{const parsed=new URL(url);if(parsed.protocol==='https:'&&['www.google.com','www.youtube.com','chatgpt.com','github.com'].includes(parsed.hostname)){const link=document.createElement('a');link.className='result-link';link.href=parsed.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open link ↗';bubble.appendChild(link);}}catch(_){}}wrapper.appendChild(bubble);chat.appendChild(wrapper);chat.scrollTop=chat.scrollHeight;return wrapper;}
+async function executeCommand(command){command=command.trim();if(!command||busy)return;addMessage('user',command);input.value='';busy=true;send.disabled=true;const pending=addMessage('ai','Thinking…');statusText.textContent='Working on it…';try{const now=new Date();const response=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command,browser_time:new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,19)})});const data=await response.json();pending.remove();addMessage('ai',data.message||'No response received.',data.url);if(!response.ok||data.category==='error')setOrbState('error');else setOrbState('success');}catch(error){pending.remove();addMessage('ai','I couldn’t reach FLX.AI. Check the internet connection and try again.');setOrbState('error');}finally{busy=false;send.disabled=false;input.focus();}}
+send.addEventListener('click',()=>executeCommand(input.value));input.addEventListener('keydown',event=>{if(event.key==='Enter')executeCommand(input.value)});document.querySelectorAll('.samples button').forEach(button=>button.addEventListener('click',()=>executeCommand(button.dataset.command)));
+function stopAudioMeter(){if(visualFrame!==null)cancelAnimationFrame(visualFrame);visualFrame=null;if(micStream){micStream.getTracks().forEach(track=>track.stop());micStream=null;}if(audioContext){audioContext.close().catch(()=>{});audioContext=null;}analyser=null;orb.style.setProperty('--sound-level','0');}
+async function startAudioMeter(){try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});audioContext=new(window.AudioContext||window.webkitAudioContext)();analyser=audioContext.createAnalyser();analyser.fftSize=256;audioContext.createMediaStreamSource(micStream).connect(analyser);const values=new Uint8Array(analyser.frequencyBinCount);function tick(){if(!analyser)return;analyser.getByteTimeDomainData(values);let sum=0;for(const value of values){const centered=(value-128)/128;sum+=centered*centered;}const rms=Math.sqrt(sum/values.length);const level=Math.min(1,rms*5.5);orb.style.setProperty('--sound-level',String(level));visualFrame=requestAnimationFrame(tick);}tick();subText.textContent='Sound-reactive mode is active; audio is analysed in this browser only.';return true;}catch(error){subText.textContent='Microphone permission was not granted. You can still type commands.';return false;}}
+function stopListening(){listening=false;stopAudioMeter();mic.textContent='♩';mic.title='Speak a command';if(recognition){try{recognition.stop();}catch(_){}}if(!busy)setOrbState('idle');subText.textContent='The reactor responds to your voice while the microphone is active.';}
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+mic.addEventListener('click',async()=>{if(listening){stopListening();return;}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){addMessage('ai','Microphone access is not supported here. You can still type commands.');return;}listening=true;mic.textContent='■';mic.title='Stop microphone';setOrbState('listening','Listening…');const audioReady=await startAudioMeter();if(!audioReady){listening=false;mic.textContent='♩';setOrbState('idle');return;}if(SpeechRecognition){recognition=new SpeechRecognition();recognition.lang='en-IN';recognition.interimResults=false;recognition.continuous=false;recognition.onresult=event=>{const spoken=event.results[0][0].transcript;input.value=spoken;stopAudioMeter();listening=false;mic.textContent='♩';executeCommand(spoken);};recognition.onerror=()=>{stopListening();};recognition.onend=()=>{if(listening)stopListening();};try{recognition.start();}catch(error){subText.textContent='Voice recognition could not start. Try again or type your command.';stopListening();}}else{subText.textContent='Sound-reactive mode is on. Speech-to-text is unavailable in this browser; type your command, then tap the square to stop the microphone.';}});
+window.addEventListener('pagehide',stopAudioMeter);
 </script>
 </body>
 </html>
