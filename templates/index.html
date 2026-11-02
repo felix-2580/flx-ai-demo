@@ -1,14 +1,1415 @@
+```html
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050916"><meta name="description" content="FLX.AI voice-controlled Windows assistant"><title>FLX.AI — Your AI Assistant</title>
-<style>
-:root{color-scheme:dark;--bg:#050916;--panel:rgba(10,19,43,.82);--line:rgba(94,139,255,.24);--text:#eef5ff;--muted:#91a7cf;--cyan:#20d8ff;--green:#35f6a0;--red:#ff5e86}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 25%,#10255a 0,transparent 42%),radial-gradient(ellipse at 80% 70%,#24104b 0,transparent 35%),var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,sans-serif}.app{min-height:100vh;display:flex;flex-direction:column}.top{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,5vw,60px);border-bottom:1px solid #172548}.brand{font-size:25px;font-weight:850;letter-spacing:.1em}.brand b{color:#9b6dff}.brand small{display:block;font-size:9px;letter-spacing:.18em;color:#8198c8;font-weight:500}.status{border:1px solid var(--line);border-radius:30px;padding:9px 13px;font-size:11px;color:#bdd0f5}.dot{display:inline-block;width:7px;height:7px;background:#ffbc55;border-radius:50%;margin-right:7px}.main{width:min(900px,94vw);margin:auto;display:flex;flex-direction:column;align-items:center;flex:1;padding:14px 0 0}.hero{text-align:center}.orb-wrap{height:clamp(210px,32vh,300px);display:grid;place-items:center;width:min(650px,92vw);position:relative}.orb{width:clamp(155px,24vh,230px);aspect-ratio:1;border-radius:50%;position:relative;display:grid;place-items:center;background:radial-gradient(circle at 28% 20%,#b2faff 0,#1bd8ff 8%,#0872ff 31%,#2a16c6 62%,#10072e 83%);border:1px solid #7beaff;box-shadow:inset -15px -20px 34px #030728aa,inset 8px 9px 25px #b4ffff99,0 0 28px #087aff,0 0 75px #124effaa,0 0 115px #7c2cff44;transform:scale(calc(1 + var(--level,0)*.1));transition:transform .08s,filter .2s}.orb:before,.orb:after{content:"";position:absolute;inset:-10%;border:1px solid #27dfffbb;border-radius:50%;transform:rotate(-28deg) scaleY(.38);animation:orbit 7s linear infinite}.orb:after{inset:-15%;border-color:#a64dffbb;transform:rotate(48deg) scaleY(.3);animation-duration:9s;animation-direction:reverse}.core{width:44%;height:44%;border:1px solid #b8faff66;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,#3cecff99,#0b1978 70%,#160438);box-shadow:0 0 25px #1ab8ff66}.wave{display:flex;gap:4px;align-items:center}.wave i{width:4px;height:13px;border-radius:4px;background:#a2faff;box-shadow:0 0 10px #20d8ff;animation:wave 1s ease-in-out infinite}.wave i:nth-child(2),.wave i:nth-child(4){height:25px;animation-delay:.2s}.wave i:nth-child(3){height:37px;animation-delay:.4s}.hero h1{font-size:clamp(27px,4vw,42px);margin:0 0 7px;background:linear-gradient(90deg,#24e1ff,#8d80ff,#c16dff);color:transparent;background-clip:text}.hero p{color:#a5bdf0;margin:0;font-size:14px}.sub{font-size:11px!important;color:#7086b6!important;margin-top:8px!important}.modes{display:flex;gap:8px;margin:13px 0 3px}.mode{border:1px solid var(--line);border-radius:20px;padding:8px 16px;background:#0a1530;color:#a9bee8;font-size:11px}.mode.active{border-color:#24dfff;color:#fff;background:#0b3560;box-shadow:0 0 16px #167bff44}.chat{width:100%;max-width:760px;display:flex;flex-direction:column;gap:9px;padding:12px 5px;max-height:clamp(95px,20vh,190px);overflow:auto;flex:1;min-height:20px}.message{display:flex}.message.user{justify-content:flex-end}.bubble{white-space:pre-wrap;overflow-wrap:anywhere;max-width:88%;padding:10px 13px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:12px;line-height:1.55;color:#e1ecff}.message.user .bubble{border-color:#246bbd;background:#0c2850}.result-link{display:inline-block;margin-top:8px;color:#58eaff;text-decoration:none;border:1px solid #23617a;border-radius:8px;padding:6px 10px}.bottom{width:100%;margin-top:auto;padding:12px 0 20px;background:linear-gradient(transparent,#050916 18%)}.composer{width:100%;max-width:780px;margin:auto}.shell{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #2189d9;border-radius:30px;background:#081329;box-shadow:0 0 25px #126bff22}.shell:focus-within{border-color:#48eaff;box-shadow:0 0 24px #00aaff33}input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:white;padding:11px 5px;font:inherit;font-size:13px}input::placeholder{color:#7188b6}.btn{width:42px;height:42px;flex:none;border-radius:50%;border:1px solid #263e70;background:#0d2045;color:#d9f8ff;font-size:17px}.btn.send{background:linear-gradient(135deg,#008eff,#662dff);border-color:#578eff}.samples-label{margin:12px 4px 7px;color:#6178a7;font-size:9px;letter-spacing:.15em}.samples{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}.samples button{border:1px solid #1d3158;border-radius:20px;background:#09142b;color:#9ab0d8;padding:7px 10px;font-size:10px}.footer{text-align:center;color:#4d628e;font-size:9px;margin-top:15px;letter-spacing:.07em}.orb.listening{filter:hue-rotate(55deg);box-shadow:0 0 35px #9d3bff,0 0 90px #7e20ff88}.orb.success{filter:hue-rotate(95deg)}.orb.error{filter:hue-rotate(300deg)}@keyframes orbit{to{rotate:360deg}}@keyframes wave{0%,100%{transform:scaleY(.5);opacity:.65}50%{transform:scaleY(1.15);opacity:1}}@media(max-width:600px){.top{height:65px;padding:0 14px}.brand{font-size:20px}.status{font-size:10px;padding:8px}.main{padding-top:8px}.orb-wrap{height:clamp(175px,25vh,225px)}.orb{width:clamp(140px,22vh,175px)}.shell{gap:4px;padding:6px}.btn{width:38px;height:38px}.chat{max-height:21vh}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
-</style></head><body><div class="app"><header class="top"><div class="brand"><b>✦</b> FLX.AI<small>VOICE-CONTROLLED WINDOWS ASSISTANT</small></div><div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">Checking companion…</span></div></header><main class="main"><section class="hero"><div class="orb-wrap"><div class="orb" id="orb"><div class="core"><div class="wave"><i></i><i></i><i></i><i></i><i></i></div></div></div></div><h1>Your AI Assistant</h1><p>Speak naturally. Make things happen.</p><p class="sub" id="subText">Local commands run through the companion on this Windows PC.</p><div class="modes"><button class="mode active" id="localMode">LOCAL MODE</button><button class="mode" id="aiMode">AI MODE</button></div></section><section class="chat" id="chat" aria-live="polite"></section><section class="bottom"><div class="composer"><div class="shell"><button class="btn" id="mic" title="Speak a command" aria-label="Speak a command">♩</button><input id="command" autocomplete="off" placeholder="Try “open calculator” or ask a question…"><button class="btn send" id="send" title="Execute command" aria-label="Execute command">➤</button></div><div class="samples-label">QUICK COMMANDS</div><div class="samples"><button data-command="open calculator">Calculator</button><button data-command="open task manager">Task Manager</button><button data-command="open downloads">Downloads</button><button data-command="increase volume">Volume up</button><button data-command="search Python tutorials">Google search</button></div><div class="footer">FLX.AI <span>•</span> LOCAL-FIRST EXECUTION <span>•</span> AI WHEN ENABLED</div></div></section></main></div>
-<script>
-const input=document.getElementById('command'),send=document.getElementById('send'),chat=document.getElementById('chat'),orb=document.getElementById('orb'),statusText=document.getElementById('statusText'),dot=document.getElementById('dot'),subText=document.getElementById('subText'),mic=document.getElementById('mic'),localMode=document.getElementById('localMode'),aiMode=document.getElementById('aiMode');let busy=false,mode='local',recognition=null,listening=false,stream=null,audioContext=null,analyser=null,frame=null;
-function setStatus(text,state='idle'){statusText.textContent=text;orb.classList.remove('listening','success','error');if(state!=='idle')orb.classList.add(state);dot.style.background=state==='error'?'#ff5e86':state==='success'?'#35f6a0':state==='listening'?'#b46bff':'#ffbc55';}
-function addMessage(type,text,url){const row=document.createElement('div');row.className='message '+type;const bubble=document.createElement('div');bubble.className='bubble';const content=document.createElement('div');content.textContent=text;bubble.appendChild(content);if(url){try{const u=new URL(url);if(u.protocol==='https:'&&['www.google.com','www.youtube.com','chatgpt.com','github.com'].includes(u.hostname)){const a=document.createElement('a');a.className='result-link';a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Open link ↗';bubble.appendChild(a);}}catch(_){}}row.appendChild(bubble);chat.appendChild(row);chat.scrollTop=chat.scrollHeight;return row;}
-async function executeCommand(value){const command=value.trim();if(!command||busy)return;addMessage('user',command);input.value='';busy=true;send.disabled=true;const pending=addMessage('ai','Working…');setStatus(mode==='ai'?'Thinking…':'Executing command…');try{let res,data;if(mode==='ai'){res=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command,mode:'ai'})});data=await res.json();}else{const sendLocal=async confirmed=>{return await fetch('http://127.0.0.1:8765/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({command,confirmed}),signal:AbortSignal.timeout(20000)});};try{res=await sendLocal(false);data=await res.json();if(data.confirmation_required){const approved=window.confirm(data.message);if(approved){res=await sendLocal(true);data=await res.json();}else{data={success:false,state:'error',message:'Action cancelled. No change was made.',command};res={ok:false};}}}catch(e){pending.remove();addMessage('ai','Windows Companion is not connected. Start the latest FLXAI-Companion.exe on this same Windows PC and keep it running.');setStatus('Companion not connected','error');return;}}pending.remove();addMessage('ai',data.message||'No response received.',data.url);const failed=data.success===false||data.state==='error'||data.category==='error'||!res.ok;setStatus(failed?'Command failed':'Ready',failed?'error':'success');}catch(e){pending.remove();addMessage('ai',mode==='ai'?'I couldn’t reach the FLX.AI AI service. Check your internet connection and try again.':'I couldn’t reach FLX.AI. Check the companion and try again.');setStatus('Connection error','error');}finally{busy=false;send.disabled=false;input.focus();}}
-send.addEventListener('click',()=>executeCommand(input.value));input.addEventListener('keydown',e=>{if(e.key==='Enter')executeCommand(input.value)});document.querySelectorAll('.samples button').forEach(b=>b.addEventListener('click',()=>executeCommand(b.dataset.command)));function setMode(next){mode=next;localMode.classList.toggle('active',mode==='local');aiMode.classList.toggle('active',mode==='ai');subText.textContent=mode==='local'?'Windows actions run through the companion on this PC.':'Ask questions, write code, or brainstorm with AI. Requires a configured AI key.';}localMode.addEventListener('click',()=>setMode('local'));aiMode.addEventListener('click',()=>setMode('ai'));
-async function checkCompanion(){try{const r=await fetch('http://127.0.0.1:8765/health',{signal:AbortSignal.timeout(2500)});const d=await r.json();if(r.ok&&d.ok){setStatus('Companion v'+(d.version||'?')+' connected','success');return;}}catch(e){}setStatus('Web ready • companion offline');}checkCompanion();
-function stopMeter(){if(frame!==null)cancelAnimationFrame(frame);frame=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}if(audioContext){audioContext.close().catch(()=>{});audioContext=null;}analyser=null;orb.style.setProperty('--level','0');}async function startMeter(){try{stream=await navigator.mediaDevices.getUserMedia({audio:true});audioContext=new(window.AudioContext||window.webkitAudioContext)();analyser=audioContext.createAnalyser();analyser.fftSize=256;audioContext.createMediaStreamSource(stream).connect(analyser);const a=new Uint8Array(analyser.frequencyBinCount);function tick(){if(!analyser)return;analyser.getByteTimeDomainData(a);let s=0;for(const n of a){const v=(n-128)/128;s+=v*v;}orb.style.setProperty('--level',String(Math.min(1,Math.sqrt(s/a.length)*5)));frame=requestAnimationFrame(tick);}tick();return true;}catch(e){addMessage('ai','Microphone access was denied. You can still type commands.');return false;}}function stopListening(){listening=false;stopMeter();mic.textContent='♩';if(recognition){try{recognition.stop()}catch(e){}}setStatus('Ready');}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;mic.addEventListener('click',async()=>{if(listening){stopListening();return;}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!SR){addMessage('ai','Speech recognition is unavailable in this browser. Try Chrome or type your command.');return;}if(!await startMeter())return;listening=true;mic.textContent='■';setStatus('Listening…','listening');recognition=new SR();recognition.lang='en-IN';recognition.interimResults=false;recognition.continuous=false;recognition.onresult=e=>{const spoken=e.results[0][0].transcript;stopMeter();listening=false;mic.textContent='♩';executeCommand(spoken)};recognition.onerror=()=>stopListening();recognition.onend=()=>{if(listening)stopListening()};try{recognition.start()}catch(e){stopListening()}});window.addEventListener('pagehide',stopMeter);
-</script></body></html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#050916">
+    <meta name="description" content="FLX.AI voice-controlled Windows assistant">
+    <title>FLX.AI — Your AI Assistant</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #050916;
+            --panel: rgba(10, 19, 43, .82);
+            --line: rgba(94, 139, 255, .24);
+            --text: #eef5ff;
+            --muted: #91a7cf;
+            --cyan: #20d8ff;
+            --green: #35f6a0;
+            --red: #ff5e86;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background:
+                radial-gradient(ellipse at 50% 25%, #10255a 0, transparent 42%),
+                radial-gradient(ellipse at 80% 70%, #24104b 0, transparent 35%),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, system-ui, Segoe UI, sans-serif;
+        }
+
+        .app {
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+
+        .top {
+            height: 76px;
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 clamp(16px, 5vw, 60px);
+            border-bottom: 1px solid #172548;
+            position: relative;
+            z-index: 5;
+            background: rgba(5, 9, 22, .75);
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: 850;
+            letter-spacing: .1em;
+        }
+
+        .brand b {
+            color: #9b6dff;
+        }
+
+        .brand small {
+            display: block;
+            font-size: 9px;
+            letter-spacing: .18em;
+            color: #8198c8;
+            font-weight: 500;
+        }
+
+        .status {
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            padding: 9px 13px;
+            font-size: 11px;
+            color: #bdd0f5;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background: #ffbc55;
+            border-radius: 50%;
+            margin-right: 7px;
+        }
+
+        /* DEFAULT COMMANDS SIDEBAR */
+
+        .sidebar {
+            position: fixed;
+            top: 76px;
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            padding: 17px 13px;
+            background: rgba(5, 12, 30, .94);
+            border-right: 1px solid #172548;
+            backdrop-filter: blur(18px);
+            overflow: hidden;
+        }
+
+        .sidebar-heading {
+            color: #6178a7;
+            font-size: 9px;
+            letter-spacing: .17em;
+            padding: 4px 9px 12px;
+        }
+
+        .menu-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 13px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0b1c3b, #101333);
+            color: #d9e9ff;
+            font-size: 12px;
+            font-weight: 650;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .menu-toggle:hover,
+        .menu-toggle.active {
+            border-color: #20d8ff;
+            background: #10264a;
+            box-shadow: 0 0 15px #167bff22;
+        }
+
+        .menu-arrow {
+            color: #7c9bd1;
+            transition: transform .2s;
+        }
+
+        .menu-toggle.active .menu-arrow {
+            transform: rotate(180deg);
+        }
+
+        .commands-panel {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-top: 12px;
+            padding: 4px 5px 15px;
+            scrollbar-width: thin;
+            scrollbar-color: #294777 transparent;
+        }
+
+        .commands-panel.open {
+            display: block;
+        }
+
+        .commands-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .commands-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .commands-panel::-webkit-scrollbar-thumb {
+            background: #294777;
+            border-radius: 10px;
+        }
+
+        .command-category {
+            margin-bottom: 17px;
+        }
+
+        .command-category h3 {
+            margin: 9px 5px 7px;
+            color: #20d8ff;
+            font-size: 9px;
+            letter-spacing: .14em;
+            font-weight: 700;
+        }
+
+        .default-command {
+            width: 100%;
+            display: block;
+            text-align: left;
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            background: rgba(12, 29, 59, .55);
+            color: #a9bee8;
+            font-size: 11px;
+            cursor: pointer;
+            transition: .18s;
+        }
+
+        .default-command:hover {
+            color: #fff;
+            border-color: #2466a0;
+            background: #10264a;
+            transform: translateX(2px);
+        }
+
+        .sidebar-note {
+            flex: none;
+            padding: 12px 7px 3px;
+            border-top: 1px solid #172548;
+            color: #6178a7;
+            font-size: 9px;
+            line-height: 1.6;
+        }
+
+        /* MAIN INTERFACE */
+
+        .main {
+            width: calc(100% - 250px);
+            height: calc(100% - 76px);
+            min-height: 0;
+            margin-left: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 14px 20px 0;
+            overflow: hidden;
+        }
+
+        .hero {
+            text-align: center;
+            flex: none;
+        }
+
+        .orb-wrap {
+            height: clamp(210px, 32vh, 300px);
+            display: grid;
+            place-items: center;
+            width: min(650px, 92vw);
+            position: relative;
+        }
+
+        .orb {
+            width: clamp(155px, 24vh, 230px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            position: relative;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(
+                circle at 28% 20%,
+                #b2faff 0,
+                #1bd8ff 8%,
+                #0872ff 31%,
+                #2a16c6 62%,
+                #10072e 83%
+            );
+            border: 1px solid #7beaff;
+            box-shadow:
+                inset -15px -20px 34px #030728aa,
+                inset 8px 9px 25px #b4ffff99,
+                0 0 28px #087aff,
+                0 0 75px #124effaa,
+                0 0 115px #7c2cff44;
+            transform: scale(calc(1 + var(--level, 0) * .1));
+            transition: transform .08s, filter .2s;
+        }
+
+        .orb:before,
+        .orb:after {
+            content: "";
+            position: absolute;
+            inset: -10%;
+            border: 1px solid #27dfffbb;
+            border-radius: 50%;
+            transform: rotate(-28deg) scaleY(.38);
+            animation: orbit 7s linear infinite;
+        }
+
+        .orb:after {
+            inset: -15%;
+            border-color: #a64dffbb;
+            transform: rotate(48deg) scaleY(.3);
+            animation-duration: 9s;
+            animation-direction: reverse;
+        }
+
+        .core {
+            width: 44%;
+            height: 44%;
+            border: 1px solid #b8faff66;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(
+                circle at 35% 25%,
+                #3cecff99,
+                #0b1978 70%,
+                #160438
+            );
+            box-shadow: 0 0 25px #1ab8ff66;
+        }
+
+        .wave {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .wave i {
+            width: 4px;
+            height: 13px;
+            border-radius: 4px;
+            background: #a2faff;
+            box-shadow: 0 0 10px #20d8ff;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .wave i:nth-child(2),
+        .wave i:nth-child(4) {
+            height: 25px;
+            animation-delay: .2s;
+        }
+
+        .wave i:nth-child(3) {
+            height: 37px;
+            animation-delay: .4s;
+        }
+
+        .hero h1 {
+            font-size: clamp(27px, 4vw, 42px);
+            margin: 0 0 7px;
+            background: linear-gradient(
+                90deg,
+                #24e1ff,
+                #8d80ff,
+                #c16dff
+            );
+            color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: #a5bdf0;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .sub {
+            font-size: 11px !important;
+            color: #7086b6 !important;
+            margin-top: 8px !important;
+        }
+
+        .modes {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 13px 0 3px;
+        }
+
+        .mode {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 8px 16px;
+            background: #0a1530;
+            color: #a9bee8;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .mode.active {
+            border-color: #24dfff;
+            color: #fff;
+            background: #0b3560;
+            box-shadow: 0 0 16px #167bff44;
+        }
+
+        /* EXECUTION LOG */
+
+        .chat {
+            width: 100%;
+            max-width: 760px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            padding: 12px 5px;
+            max-height: clamp(95px, 20vh, 190px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            min-height: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #294777 transparent;
+        }
+
+        .message {
+            display: flex;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            max-width: 88%;
+            padding: 10px 13px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel);
+            font-size: 12px;
+            line-height: 1.55;
+            color: #e1ecff;
+        }
+
+        .message.user .bubble {
+            border-color: #246bbd;
+            background: #0c2850;
+        }
+
+        .result-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #58eaff;
+            text-decoration: none;
+            border: 1px solid #23617a;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+
+        /* COMMAND BAR */
+
+        .bottom {
+            width: 100%;
+            flex: none;
+            margin-top: auto;
+            padding: 12px 0 20px;
+            background: linear-gradient(transparent, #050916 18%);
+        }
+
+        .composer {
+            width: 100%;
+            max-width: 780px;
+            margin: auto;
+        }
+
+        .shell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #2189d9;
+            border-radius: 30px;
+            background: #081329;
+            box-shadow: 0 0 25px #126bff22;
+        }
+
+        .shell:focus-within {
+            border-color: #48eaff;
+            box-shadow: 0 0 24px #00aaff33;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: white;
+            padding: 11px 5px;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        input::placeholder {
+            color: #7188b6;
+        }
+
+        .btn {
+            width: 42px;
+            height: 42px;
+            flex: none;
+            border-radius: 50%;
+            border: 1px solid #263e70;
+            background: #0d2045;
+            color: #d9f8ff;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        .btn.send {
+            background: linear-gradient(135deg, #008eff, #662dff);
+            border-color: #578eff;
+        }
+
+        .samples-label {
+            margin: 12px 4px 7px;
+            color: #6178a7;
+            font-size: 9px;
+            letter-spacing: .15em;
+        }
+
+        .samples {
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .samples button {
+            border: 1px solid #1d3158;
+            border-radius: 20px;
+            background: #09142b;
+            color: #9ab0d8;
+            padding: 7px 10px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .footer {
+            text-align: center;
+            color: #4d628e;
+            font-size: 9px;
+            margin-top: 15px;
+            letter-spacing: .07em;
+        }
+
+        /* ORB STATES */
+
+        .orb.listening {
+            filter: hue-rotate(55deg);
+            box-shadow: 0 0 35px #9d3bff, 0 0 90px #7e20ff88;
+        }
+
+        .orb.success {
+            filter: hue-rotate(95deg);
+        }
+
+        .orb.error {
+            filter: hue-rotate(300deg);
+        }
+
+        /* ANIMATIONS */
+
+        @keyframes orbit {
+            to {
+                rotate: 360deg;
+            }
+        }
+
+        @keyframes wave {
+            0%,
+            100% {
+                transform: scaleY(.5);
+                opacity: .65;
+            }
+
+            50% {
+                transform: scaleY(1.15);
+                opacity: 1;
+            }
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 600px) {
+            .top {
+                height: 65px;
+                min-height: 65px;
+                padding: 0 14px;
+            }
+
+            .brand {
+                font-size: 20px;
+            }
+
+            .status {
+                font-size: 10px;
+                padding: 8px;
+            }
+
+            .sidebar {
+                top: 65px;
+                width: 210px;
+                padding: 12px 9px;
+            }
+
+            .main {
+                width: calc(100% - 210px);
+                height: calc(100% - 65px);
+                margin-left: 210px;
+                padding: 8px 8px 0;
+            }
+
+            .orb-wrap {
+                height: clamp(150px, 25vh, 225px);
+                width: 100%;
+            }
+
+            .orb {
+                width: clamp(115px, 22vh, 175px);
+            }
+
+            .hero h1 {
+                font-size: clamp(20px, 5vw, 30px);
+            }
+
+            .hero p {
+                font-size: 11px;
+            }
+
+            .shell {
+                gap: 4px;
+                padding: 6px;
+            }
+
+            .btn {
+                width: 38px;
+                height: 38px;
+            }
+
+            .chat {
+                max-height: 21vh;
+            }
+
+            .samples {
+                gap: 4px;
+            }
+
+            .samples button {
+                padding: 6px 7px;
+                font-size: 9px;
+            }
+
+            .footer {
+                font-size: 7px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *:before,
+            *:after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- HEADER -->
+
+        <header class="top">
+
+            <div class="brand">
+                <b>✦</b> FLX.AI
+                <small>VOICE-CONTROLLED WINDOWS ASSISTANT</small>
+            </div>
+
+            <div class="status" id="status">
+                <span class="dot" id="dot"></span>
+                <span id="statusText">Checking companion…</span>
+            </div>
+
+        </header>
+
+        <!-- DEFAULT COMMANDS SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-heading">
+                FLX.AI COMMAND CENTRE
+            </div>
+
+            <button class="menu-toggle" id="commandsToggle">
+                <span>☷ &nbsp; DEFAULT COMMANDS</span>
+                <span class="menu-arrow">⌄</span>
+            </button>
+
+            <div class="commands-panel" id="commandsPanel">
+
+                <div class="command-category">
+                    <h3>SEARCH</h3>
+                    <button class="default-command" data-command="search Python tutorials">Search Python tutorials</button>
+                    <button class="default-command" data-command="search artificial intelligence">Search artificial intelligence</button>
+                    <button class="default-command" data-command="search latest technology news">Search latest technology news</button>
+                    <button class="default-command" data-command="search best gaming laptops">Search best gaming laptops</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>APPLICATIONS</h3>
+                    <button class="default-command" data-command="open chrome">Open Chrome</button>
+                    <button class="default-command" data-command="open edge">Open Edge</button>
+                    <button class="default-command" data-command="open firefox">Open Firefox</button>
+                    <button class="default-command" data-command="open file explorer">Open File Explorer</button>
+                    <button class="default-command" data-command="open notepad">Open Notepad</button>
+                    <button class="default-command" data-command="open calculator">Open Calculator</button>
+                    <button class="default-command" data-command="open snipping tool">Open Snipping Tool</button>
+                    <button class="default-command" data-command="open clock">Open Clock</button>
+                    <button class="default-command" data-command="open settings">Open Settings</button>
+                    <button class="default-command" data-command="open task manager">Open Task Manager</button>
+                    <button class="default-command" data-command="open control panel">Open Control Panel</button>
+                    <button class="default-command" data-command="open terminal">Open Terminal</button>
+                    <button class="default-command" data-command="open command prompt">Open Command Prompt</button>
+                    <button class="default-command" data-command="open powershell">Open PowerShell</button>
+                    <button class="default-command" data-command="open paint">Open Paint</button>
+                    <button class="default-command" data-command="open photos">Open Photos</button>
+                    <button class="default-command" data-command="open media player">Open Media Player</button>
+                    <button class="default-command" data-command="open word">Open Word</button>
+                    <button class="default-command" data-command="open excel">Open Excel</button>
+                    <button class="default-command" data-command="open powerpoint">Open PowerPoint</button>
+                    <button class="default-command" data-command="open vscode">Open VS Code</button>
+                    <button class="default-command" data-command="open pycharm">Open PyCharm</button>
+                    <button class="default-command" data-command="open spotify app">Open Spotify App</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>WEBSITES</h3>
+                    <button class="default-command" data-command="open youtube">Open YouTube</button>
+                    <button class="default-command" data-command="open google">Open Google</button>
+                    <button class="default-command" data-command="open gmail">Open Gmail</button>
+                    <button class="default-command" data-command="open chatgpt">Open ChatGPT</button>
+                    <button class="default-command" data-command="open github">Open GitHub</button>
+                    <button class="default-command" data-command="open instagram">Open Instagram</button>
+                    <button class="default-command" data-command="open facebook">Open Facebook</button>
+                    <button class="default-command" data-command="open whatsapp">Open WhatsApp</button>
+                    <button class="default-command" data-command="open spotify">Open Spotify</button>
+                    <button class="default-command" data-command="open netflix">Open Netflix</button>
+                    <button class="default-command" data-command="open reddit">Open Reddit</button>
+                    <button class="default-command" data-command="open amazon">Open Amazon</button>
+                    <button class="default-command" data-command="open google classroom">Open Google Classroom</button>
+                    <button class="default-command" data-command="open google drive">Open Google Drive</button>
+                    <button class="default-command" data-command="open google docs">Open Google Docs</button>
+                    <button class="default-command" data-command="open google meet">Open Google Meet</button>
+                    <button class="default-command" data-command="open google maps">Open Google Maps</button>
+                    <button class="default-command" data-command="open wikipedia">Open Wikipedia</button>
+                    <button class="default-command" data-command="open linkedin">Open LinkedIn</button>
+                    <button class="default-command" data-command="open discord">Open Discord</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>VOLUME CONTROLS</h3>
+                    <button class="default-command" data-command="increase volume">Increase volume</button>
+                    <button class="default-command" data-command="decrease volume">Decrease volume</button>
+                    <button class="default-command" data-command="increase volume by 10">Increase volume by 10</button>
+                    <button class="default-command" data-command="decrease volume by 10">Decrease volume by 10</button>
+                    <button class="default-command" data-command="set volume to 50">Set volume to 50%</button>
+                    <button class="default-command" data-command="mute">Mute</button>
+                    <button class="default-command" data-command="unmute">Unmute</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>BRIGHTNESS CONTROLS</h3>
+                    <button class="default-command" data-command="increase brightness">Increase brightness</button>
+                    <button class="default-command" data-command="decrease brightness">Decrease brightness</button>
+                    <button class="default-command" data-command="increase brightness by 10">Increase brightness by 10</button>
+                    <button class="default-command" data-command="decrease brightness by 10">Decrease brightness by 10</button>
+                    <button class="default-command" data-command="set brightness to 70">Set brightness to 70%</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>NETWORK CONTROLS</h3>
+                    <button class="default-command" data-command="turn wifi on">Turn Wi-Fi on</button>
+                    <button class="default-command" data-command="turn wifi off">Turn Wi-Fi off</button>
+                    <button class="default-command" data-command="turn bluetooth on">Turn Bluetooth on</button>
+                    <button class="default-command" data-command="turn bluetooth off">Turn Bluetooth off</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>POWER CONTROLS</h3>
+                    <button class="default-command" data-command="lock pc">Lock PC</button>
+                    <button class="default-command" data-command="sleep pc">Sleep PC</button>
+                    <button class="default-command" data-command="shut down computer">Shut down computer</button>
+                    <button class="default-command" data-command="restart computer">Restart computer</button>
+                    <button class="default-command" data-command="cancel shutdown">Cancel shutdown</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>FOLDER NAVIGATION</h3>
+                    <button class="default-command" data-command="open downloads">Open Downloads</button>
+                    <button class="default-command" data-command="open documents">Open Documents</button>
+                    <button class="default-command" data-command="open desktop">Open Desktop</button>
+                    <button class="default-command" data-command="open pictures">Open Pictures</button>
+                    <button class="default-command" data-command="open videos">Open Videos</button>
+                    <button class="default-command" data-command="open music">Open Music</button>
+                    <button class="default-command" data-command="open home folder">Open Home Folder</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>MEDIA CONTROLS</h3>
+                    <button class="default-command" data-command="play pause">Play / Pause</button>
+                    <button class="default-command" data-command="pause music">Pause music</button>
+                    <button class="default-command" data-command="resume music">Resume music</button>
+                    <button class="default-command" data-command="next track">Next track</button>
+                    <button class="default-command" data-command="previous track">Previous track</button>
+                    <button class="default-command" data-command="mute audio">Mute audio</button>
+                    <button class="default-command" data-command="unmute audio">Unmute audio</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM INFORMATION</h3>
+                    <button class="default-command" data-command="show battery">Show battery</button>
+                    <button class="default-command" data-command="battery status">Battery status</button>
+                    <button class="default-command" data-command="show system information">Show system information</button>
+                    <button class="default-command" data-command="show cpu usage">Show CPU usage</button>
+                    <button class="default-command" data-command="show memory usage">Show memory usage</button>
+                    <button class="default-command" data-command="show ram usage">Show RAM usage</button>
+                    <button class="default-command" data-command="show disk space">Show disk space</button>
+                    <button class="default-command" data-command="show running processes">Show running processes</button>
+                    <button class="default-command" data-command="show network status">Show network status</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SCREENSHOT & CLIPBOARD</h3>
+                    <button class="default-command" data-command="take screenshot">Take screenshot</button>
+                    <button class="default-command" data-command="copy clipboard">Copy clipboard</button>
+                    <button class="default-command" data-command="clear clipboard">Clear clipboard</button>
+                    <button class="default-command" data-command="copy text">Copy text</button>
+                </div>
+
+                <div class="sidebar-note">
+                    Select a command to place it in the command bar.
+                    Press Send to execute it.
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- MAIN INTERFACE -->
+
+        <main class="main">
+
+            <section class="hero">
+
+                <div class="orb-wrap">
+                    <div class="orb" id="orb">
+                        <div class="core">
+                            <div class="wave">
+                                <i></i>
+                                <i></i>
+                                <i></i>
+                                <i></i>
+                                <i></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h1>Your AI Assistant</h1>
+                <p>Speak naturally. Make things happen.</p>
+
+                <p class="sub" id="subText">
+                    Local commands run through the companion on this Windows PC.
+                </p>
+
+                <div class="modes">
+                    <button class="mode active" id="localMode">LOCAL MODE</button>
+                    <button class="mode" id="aiMode">AI MODE</button>
+                </div>
+
+            </section>
+
+            <!-- EXECUTION LOG -->
+
+            <section class="chat" id="chat" aria-live="polite"></section>
+
+            <!-- COMMAND BAR -->
+
+            <section class="bottom">
+
+                <div class="composer">
+
+                    <div class="shell">
+
+                        <button class="btn" id="mic" title="Speak a command" aria-label="Speak a command">
+                            ♩
+                        </button>
+
+                        <input
+                            id="command"
+                            autocomplete="off"
+                            placeholder="Try “open calculator” or ask a question…"
+                        >
+
+                        <button class="btn send" id="send" title="Execute command" aria-label="Execute command">
+                            ➤
+                        </button>
+
+                    </div>
+
+                    <div class="samples-label">QUICK COMMANDS</div>
+
+                    <div class="samples">
+                        <button data-command="open calculator">Calculator</button>
+                        <button data-command="open task manager">Task Manager</button>
+                        <button data-command="open downloads">Downloads</button>
+                        <button data-command="increase volume">Volume up</button>
+                        <button data-command="search Python tutorials">Google search</button>
+                    </div>
+
+                    <div class="footer">
+                        FLX.AI <span>•</span> LOCAL-FIRST EXECUTION <span>•</span> AI WHEN ENABLED
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script>
+        const input = document.getElementById('command');
+        const send = document.getElementById('send');
+        const chat = document.getElementById('chat');
+        const orb = document.getElementById('orb');
+        const statusText = document.getElementById('statusText');
+        const dot = document.getElementById('dot');
+        const subText = document.getElementById('subText');
+        const mic = document.getElementById('mic');
+        const localMode = document.getElementById('localMode');
+        const aiMode = document.getElementById('aiMode');
+
+        const commandsToggle = document.getElementById('commandsToggle');
+        const commandsPanel = document.getElementById('commandsPanel');
+
+        let busy = false;
+        let mode = 'local';
+        let recognition = null;
+        let listening = false;
+        let stream = null;
+        let audioContext = null;
+        let analyser = null;
+        let frame = null;
+
+        /* DEFAULT COMMANDS MENU */
+
+        commandsToggle.addEventListener('click', () => {
+            const isOpen = commandsPanel.classList.toggle('open');
+
+            commandsToggle.classList.toggle('active', isOpen);
+            commandsToggle.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        /* SELECT A DEFAULT COMMAND */
+
+        document.querySelectorAll('.default-command').forEach(button => {
+            button.addEventListener('click', () => {
+                input.value = button.dataset.command;
+                input.focus();
+            });
+        });
+
+        /* STATUS */
+
+        function setStatus(text, state = 'idle') {
+            statusText.textContent = text;
+
+            orb.classList.remove('listening', 'success', 'error');
+
+            if (state !== 'idle') {
+                orb.classList.add(state);
+            }
+
+            dot.style.background =
+                state === 'error' ? '#ff5e86' :
+                state === 'success' ? '#35f6a0' :
+                state === 'listening' ? '#b46bff' :
+                '#ffbc55';
+        }
+
+        /* EXECUTION LOG */
+
+        function addMessage(type, text, url) {
+            const row = document.createElement('div');
+            row.className = 'message ' + type;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+
+            const content = document.createElement('div');
+            content.textContent = text;
+
+            bubble.appendChild(content);
+
+            if (url) {
+                try {
+                    const u = new URL(url);
+
+                    if (
+                        u.protocol === 'https:' &&
+                        [
+                            'www.google.com',
+                            'www.youtube.com',
+                            'chatgpt.com',
+                            'github.com'
+                        ].includes(u.hostname)
+                    ) {
+                        const a = document.createElement('a');
+                        a.className = 'result-link';
+                        a.href = u.href;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        a.textContent = 'Open link ↗';
+
+                        bubble.appendChild(a);
+                    }
+                } catch (_) {}
+            }
+
+            row.appendChild(bubble);
+            chat.appendChild(row);
+            chat.scrollTop = chat.scrollHeight;
+
+            return row;
+        }
+
+        /* COMMAND EXECUTION */
+
+        async function executeCommand(value) {
+            const command = value.trim();
+
+            if (!command || busy) return;
+
+            addMessage('user', command);
+
+            input.value = '';
+            busy = true;
+            send.disabled = true;
+
+            const pending = addMessage('ai', 'Working…');
+
+            setStatus(
+                mode === 'ai' ? 'Thinking…' : 'Executing command…'
+            );
+
+            try {
+                let res;
+                let data;
+
+                if (mode === 'ai') {
+                    res = await fetch('/api/command', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            command,
+                            mode: 'ai'
+                        })
+                    });
+
+                    data = await res.json();
+
+                } else {
+
+                    const sendLocal = async confirmed => {
+                        return await fetch(
+                            'http://127.0.0.1:8765/command',
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    command,
+                                    confirmed
+                                }),
+                                signal: AbortSignal.timeout(20000)
+                            }
+                        );
+                    };
+
+                    try {
+                        res = await sendLocal(false);
+                        data = await res.json();
+
+                        if (data.confirmation_required) {
+                            const approved = window.confirm(data.message);
+
+                            if (approved) {
+                                res = await sendLocal(true);
+                                data = await res.json();
+
+                            } else {
+                                data = {
+                                    success: false,
+                                    state: 'error',
+                                    message: 'Action cancelled. No change was made.',
+                                    command
+                                };
+
+                                res = { ok: false };
+                            }
+                        }
+
+                    } catch (e) {
+                        pending.remove();
+
+                        addMessage(
+                            'ai',
+                            'Windows Companion is not connected. Start the latest FLXAI-Companion.exe on this same Windows PC and keep it running.'
+                        );
+
+                        setStatus('Companion not connected', 'error');
+                        return;
+                    }
+                }
+
+                pending.remove();
+
+                addMessage(
+                    'ai',
+                    data.message || 'No response received.',
+                    data.url
+                );
+
+                const failed =
+                    data.success === false ||
+                    data.state === 'error' ||
+                    data.category === 'error' ||
+                    !res.ok;
+
+                setStatus(
+                    failed ? 'Command failed' : 'Ready',
+                    failed ? 'error' : 'success'
+                );
+
+            } catch (e) {
+                pending.remove();
+
+                addMessage(
+                    'ai',
+                    mode === 'ai'
+                        ? 'I couldn’t reach the FLX.AI AI service. Check your internet connection and try again.'
+                        : 'I couldn’t reach FLX.AI. Check the companion and try again.'
+                );
+
+                setStatus('Connection error', 'error');
+
+            } finally {
+                busy = false;
+                send.disabled = false;
+                input.focus();
+            }
+        }
+
+        /* SEND COMMAND */
+
+        send.addEventListener('click', () => {
+            executeCommand(input.value);
+        });
+
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                executeCommand(input.value);
+            }
+        });
+
+        /* QUICK COMMANDS */
+
+        document.querySelectorAll('.samples button').forEach(button => {
+            button.addEventListener('click', () => {
+                executeCommand(button.dataset.command);
+            });
+        });
+
+        /* AI MODE AND LOCAL MODE */
+
+        function setMode(next) {
+            mode = next;
+
+            localMode.classList.toggle('active', mode === 'local');
+            aiMode.classList.toggle('active', mode === 'ai');
+
+            subText.textContent =
+                mode === 'local'
+                    ? 'Windows actions run through the companion on this PC.'
+                    : 'Ask questions, write code, or brainstorm with AI. Requires a configured AI key.';
+        }
+
+        localMode.addEventListener('click', () => {
+            setMode('local');
+        });
+
+        aiMode.addEventListener('click', () => {
+            setMode('ai');
+        });
+
+        /* COMPANION CONNECTION */
+
+        async function checkCompanion() {
+            try {
+                const r = await fetch(
+                    'http://127.0.0.1:8765/health',
+                    {
+                        signal: AbortSignal.timeout(2500)
+                    }
+                );
+
+                const d = await r.json();
+
+                if (r.ok && d.ok) {
+                    setStatus(
+                        'Companion v' + (d.version || '?') + ' connected',
+                        'success'
+                    );
+                    return;
+                }
+
+            } catch (e) {}
+
+            setStatus('Web ready • companion offline');
+        }
+
+        checkCompanion();
+
+        /* AUDIO VISUALIZER */
+
+        function stopMeter() {
+            if (frame !== null) {
+                cancelAnimationFrame(frame);
+            }
+
+            frame = null;
+
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+            }
+
+            if (audioContext) {
+                audioContext.close().catch(() => {});
+                audioContext = null;
+            }
+
+            analyser = null;
+            orb.style.setProperty('--level', '0');
+        }
+
+        async function startMeter() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                audioContext = new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+
+                audioContext
+                    .createMediaStreamSource(stream)
+                    .connect(analyser);
+
+                const a = new Uint8Array(analyser.frequencyBinCount);
+
+                function tick() {
+                    if (!analyser) return;
+
+                    analyser.getByteTimeDomainData(a);
+
+                    let s = 0;
+
+                    for (const n of a) {
+                        const v = (n - 128) / 128;
+                        s += v * v;
+                    }
+
+                    orb.style.setProperty(
+                        '--level',
+                        String(
+                            Math.min(
+                                1,
+                                Math.sqrt(s / a.length) * 5
+                            )
+                        )
+                    );
+
+                    frame = requestAnimationFrame(tick);
+                }
+
+                tick();
+
+                return true;
+
+            } catch (e) {
+                addMessage(
+                    'ai',
+                    'Microphone access was denied. You can still type commands.'
+                );
+
+                return false;
+            }
+        }
+
+        /* VOICE INPUT */
+
+        function stopListening() {
+            listening = false;
+
+            stopMeter();
+
+            mic.textContent = '♩';
+
+            if (recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) {}
+            }
+
+            setStatus('Ready');
+        }
+
+        const SR =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+        mic.addEventListener('click', async () => {
+            if (listening) {
+                stopListening();
+                return;
+            }
+
+            if (
+                !navigator.mediaDevices ||
+                !navigator.mediaDevices.getUserMedia ||
+                !SR
+            ) {
+                addMessage(
+                    'ai',
+                    'Speech recognition is unavailable in this browser. Try Chrome or type your command.'
+                );
+
+                return;
+            }
+
+            if (!await startMeter()) return;
+
+            listening = true;
+            mic.textContent = '■';
+
+            setStatus('Listening…', 'listening');
+
+            recognition = new SR();
+
+            recognition.lang = 'en-IN';
+            recognition.interimResults = false;
+            recognition.continuous = false;
+
+            recognition.onresult = e => {
+                const spoken = e.results[0][0].transcript;
+
+                stopMeter();
+
+                listening = false;
+                mic.textContent = '♩';
+
+                executeCommand(spoken);
+            };
+
+            recognition.onerror = () => {
+                stopListening();
+            };
+
+            recognition.onend = () => {
+                if (listening) {
+                    stopListening();
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                stopListening();
+            }
+        });
+
+        window.addEventListener('pagehide', stopMeter);
+
+    </script>
+
+</body>
+</html>
+```
