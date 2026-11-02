@@ -90,7 +90,7 @@ def ask_gemini(prompt):
 
     endpoint = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-2.5-flash-lite:generateContent?key=" + quote_plus(api_key)
+        "gemini-3.5-flash-lite:generateContent?key=" + quote_plus(api_key)
     )
 
     payload = {
