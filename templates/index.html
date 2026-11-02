@@ -546,7 +546,7 @@
             letter-spacing: .07em;
         }
 
-        /* ORB STATES */
+        /* REACTOR STATUS COLOURS */
 
         .orb.listening {
             filter: hue-rotate(55deg);
@@ -555,10 +555,22 @@
 
         .orb.success {
             filter: hue-rotate(95deg);
+            box-shadow:
+                inset -15px -20px 34px #032b18aa,
+                inset 8px 9px 25px #b4ffd899,
+                0 0 28px #20ff91,
+                0 0 75px #12d878aa,
+                0 0 115px #12d87844;
         }
 
         .orb.error {
             filter: hue-rotate(300deg);
+            box-shadow:
+                inset -15px -20px 34px #30020aaa,
+                inset 8px 9px 25px #ffc0c099,
+                0 0 28px #ff315e,
+                0 0 75px #ff174faa,
+                0 0 115px #ff174f44;
         }
 
         /* ANIMATIONS */
@@ -704,13 +716,91 @@
 
             <div class="commands-panel" id="commandsPanel">
 
+                <!-- SYSTEM CONTROLS -->
+
                 <div class="command-category">
-                    <h3>SEARCH</h3>
-                    <button class="default-command" data-command="search Python tutorials">Search Python tutorials</button>
-                    <button class="default-command" data-command="search artificial intelligence">Search artificial intelligence</button>
-                    <button class="default-command" data-command="search latest technology news">Search latest technology news</button>
-                    <button class="default-command" data-command="search best gaming laptops">Search best gaming laptops</button>
+                    <h3>SYSTEM CONTROLS — VOLUME</h3>
+                    <button class="default-command" data-command="increase volume">Increase volume</button>
+                    <button class="default-command" data-command="decrease volume">Decrease volume</button>
+                    <button class="default-command" data-command="increase volume by 10">Increase volume by 10</button>
+                    <button class="default-command" data-command="decrease volume by 10">Decrease volume by 10</button>
+                    <button class="default-command" data-command="set volume to 50">Set volume to 50%</button>
+                    <button class="default-command" data-command="mute">Mute</button>
+                    <button class="default-command" data-command="unmute">Unmute</button>
                 </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM CONTROLS — BRIGHTNESS</h3>
+                    <button class="default-command" data-command="increase brightness">Increase brightness</button>
+                    <button class="default-command" data-command="decrease brightness">Decrease brightness</button>
+                    <button class="default-command" data-command="increase brightness by 10">Increase brightness by 10</button>
+                    <button class="default-command" data-command="decrease brightness by 10">Decrease brightness by 10</button>
+                    <button class="default-command" data-command="set brightness to 70">Set brightness to 70%</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM CONTROLS — NETWORK</h3>
+                    <button class="default-command" data-command="turn wifi on">Turn Wi-Fi on</button>
+                    <button class="default-command" data-command="turn wifi off">Turn Wi-Fi off</button>
+                    <button class="default-command" data-command="turn bluetooth on">Turn Bluetooth on</button>
+                    <button class="default-command" data-command="turn bluetooth off">Turn Bluetooth off</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM CONTROLS — POWER</h3>
+                    <button class="default-command" data-command="lock pc">Lock PC</button>
+                    <button class="default-command" data-command="sleep pc">Sleep PC</button>
+                    <button class="default-command" data-command="shut down computer">Shut down computer</button>
+                    <button class="default-command" data-command="restart computer">Restart computer</button>
+                    <button class="default-command" data-command="cancel shutdown">Cancel shutdown</button>
+                </div>
+
+                <!-- SYSTEM TOOLS -->
+
+                <div class="command-category">
+                    <h3>SYSTEM TOOLS — INFORMATION</h3>
+                    <button class="default-command" data-command="show battery">Show battery</button>
+                    <button class="default-command" data-command="battery status">Battery status</button>
+                    <button class="default-command" data-command="show system information">Show system information</button>
+                    <button class="default-command" data-command="show cpu usage">Show CPU usage</button>
+                    <button class="default-command" data-command="show memory usage">Show memory usage</button>
+                    <button class="default-command" data-command="show ram usage">Show RAM usage</button>
+                    <button class="default-command" data-command="show disk space">Show disk space</button>
+                    <button class="default-command" data-command="show running processes">Show running processes</button>
+                    <button class="default-command" data-command="show network status">Show network status</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM TOOLS — FOLDERS</h3>
+                    <button class="default-command" data-command="open downloads">Open Downloads</button>
+                    <button class="default-command" data-command="open documents">Open Documents</button>
+                    <button class="default-command" data-command="open desktop">Open Desktop</button>
+                    <button class="default-command" data-command="open pictures">Open Pictures</button>
+                    <button class="default-command" data-command="open videos">Open Videos</button>
+                    <button class="default-command" data-command="open music">Open Music</button>
+                    <button class="default-command" data-command="open home folder">Open Home Folder</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM TOOLS — MEDIA</h3>
+                    <button class="default-command" data-command="play pause">Play / Pause</button>
+                    <button class="default-command" data-command="pause music">Pause music</button>
+                    <button class="default-command" data-command="resume music">Resume music</button>
+                    <button class="default-command" data-command="next track">Next track</button>
+                    <button class="default-command" data-command="previous track">Previous track</button>
+                    <button class="default-command" data-command="mute audio">Mute audio</button>
+                    <button class="default-command" data-command="unmute audio">Unmute audio</button>
+                </div>
+
+                <div class="command-category">
+                    <h3>SYSTEM TOOLS — SCREENSHOT & CLIPBOARD</h3>
+                    <button class="default-command" data-command="take screenshot">Take screenshot</button>
+                    <button class="default-command" data-command="copy clipboard">Copy clipboard</button>
+                    <button class="default-command" data-command="clear clipboard">Clear clipboard</button>
+                    <button class="default-command" data-command="copy text">Copy text</button>
+                </div>
+
+                <!-- APPLICATIONS -->
 
                 <div class="command-category">
                     <h3>APPLICATIONS</h3>
@@ -739,6 +829,8 @@
                     <button class="default-command" data-command="open spotify app">Open Spotify App</button>
                 </div>
 
+                <!-- WEBSITES -->
+
                 <div class="command-category">
                     <h3>WEBSITES</h3>
                     <button class="default-command" data-command="open youtube">Open YouTube</button>
@@ -763,89 +855,18 @@
                     <button class="default-command" data-command="open discord">Open Discord</button>
                 </div>
 
-                <div class="command-category">
-                    <h3>VOLUME CONTROLS</h3>
-                    <button class="default-command" data-command="increase volume">Increase volume</button>
-                    <button class="default-command" data-command="decrease volume">Decrease volume</button>
-                    <button class="default-command" data-command="increase volume by 10">Increase volume by 10</button>
-                    <button class="default-command" data-command="decrease volume by 10">Decrease volume by 10</button>
-                    <button class="default-command" data-command="set volume to 50">Set volume to 50%</button>
-                    <button class="default-command" data-command="mute">Mute</button>
-                    <button class="default-command" data-command="unmute">Unmute</button>
-                </div>
+                <!-- GOOGLE SEARCH -->
 
                 <div class="command-category">
-                    <h3>BRIGHTNESS CONTROLS</h3>
-                    <button class="default-command" data-command="increase brightness">Increase brightness</button>
-                    <button class="default-command" data-command="decrease brightness">Decrease brightness</button>
-                    <button class="default-command" data-command="increase brightness by 10">Increase brightness by 10</button>
-                    <button class="default-command" data-command="decrease brightness by 10">Decrease brightness by 10</button>
-                    <button class="default-command" data-command="set brightness to 70">Set brightness to 70%</button>
-                </div>
-
-                <div class="command-category">
-                    <h3>NETWORK CONTROLS</h3>
-                    <button class="default-command" data-command="turn wifi on">Turn Wi-Fi on</button>
-                    <button class="default-command" data-command="turn wifi off">Turn Wi-Fi off</button>
-                    <button class="default-command" data-command="turn bluetooth on">Turn Bluetooth on</button>
-                    <button class="default-command" data-command="turn bluetooth off">Turn Bluetooth off</button>
-                </div>
-
-                <div class="command-category">
-                    <h3>POWER CONTROLS</h3>
-                    <button class="default-command" data-command="lock pc">Lock PC</button>
-                    <button class="default-command" data-command="sleep pc">Sleep PC</button>
-                    <button class="default-command" data-command="shut down computer">Shut down computer</button>
-                    <button class="default-command" data-command="restart computer">Restart computer</button>
-                    <button class="default-command" data-command="cancel shutdown">Cancel shutdown</button>
-                </div>
-
-                <div class="command-category">
-                    <h3>FOLDER NAVIGATION</h3>
-                    <button class="default-command" data-command="open downloads">Open Downloads</button>
-                    <button class="default-command" data-command="open documents">Open Documents</button>
-                    <button class="default-command" data-command="open desktop">Open Desktop</button>
-                    <button class="default-command" data-command="open pictures">Open Pictures</button>
-                    <button class="default-command" data-command="open videos">Open Videos</button>
-                    <button class="default-command" data-command="open music">Open Music</button>
-                    <button class="default-command" data-command="open home folder">Open Home Folder</button>
-                </div>
-
-                <div class="command-category">
-                    <h3>MEDIA CONTROLS</h3>
-                    <button class="default-command" data-command="play pause">Play / Pause</button>
-                    <button class="default-command" data-command="pause music">Pause music</button>
-                    <button class="default-command" data-command="resume music">Resume music</button>
-                    <button class="default-command" data-command="next track">Next track</button>
-                    <button class="default-command" data-command="previous track">Previous track</button>
-                    <button class="default-command" data-command="mute audio">Mute audio</button>
-                    <button class="default-command" data-command="unmute audio">Unmute audio</button>
-                </div>
-
-                <div class="command-category">
-                    <h3>SYSTEM INFORMATION</h3>
-                    <button class="default-command" data-command="show battery">Show battery</button>
-                    <button class="default-command" data-command="battery status">Battery status</button>
-                    <button class="default-command" data-command="show system information">Show system information</button>
-                    <button class="default-command" data-command="show cpu usage">Show CPU usage</button>
-                    <button class="default-command" data-command="show memory usage">Show memory usage</button>
-                    <button class="default-command" data-command="show ram usage">Show RAM usage</button>
-                    <button class="default-command" data-command="show disk space">Show disk space</button>
-                    <button class="default-command" data-command="show running processes">Show running processes</button>
-                    <button class="default-command" data-command="show network status">Show network status</button>
-                </div>
-
-                <div class="command-category">
-                    <h3>SCREENSHOT & CLIPBOARD</h3>
-                    <button class="default-command" data-command="take screenshot">Take screenshot</button>
-                    <button class="default-command" data-command="copy clipboard">Copy clipboard</button>
-                    <button class="default-command" data-command="clear clipboard">Clear clipboard</button>
-                    <button class="default-command" data-command="copy text">Copy text</button>
+                    <h3>GOOGLE SEARCH</h3>
+                    <button class="default-command" data-command="search Python tutorials">Search Python tutorials</button>
+                    <button class="default-command" data-command="search artificial intelligence">Search artificial intelligence</button>
+                    <button class="default-command" data-command="search latest technology news">Search latest technology news</button>
+                    <button class="default-command" data-command="search best gaming laptops">Search best gaming laptops</button>
                 </div>
 
                 <div class="sidebar-note">
-                    Select a command to place it in the command bar.
-                    Press Send to execute it.
+                    Select a command to execute it immediately.
                 </div>
 
             </div>
@@ -960,6 +981,9 @@
         let analyser = null;
         let frame = null;
 
+        let statusResetTimer = null;
+        let statusVersion = 0;
+
         /* DEFAULT COMMANDS MENU */
 
         commandsToggle.addEventListener('click', () => {
@@ -969,31 +993,66 @@
             commandsToggle.setAttribute('aria-expanded', String(isOpen));
         });
 
-        /* SELECT A DEFAULT COMMAND */
+        /* DEFAULT COMMANDS EXECUTE IMMEDIATELY */
 
         document.querySelectorAll('.default-command').forEach(button => {
             button.addEventListener('click', () => {
-                input.value = button.dataset.command;
-                input.focus();
+                executeCommand(button.dataset.command);
             });
         });
 
-        /* STATUS */
+        /* REACTOR AND STATUS INDICATOR */
 
-        function setStatus(text, state = 'idle') {
+        function setStatus(text, state = 'idle', autoReset = false) {
+            statusVersion++;
+
+            const currentVersion = statusVersion;
+
+            if (statusResetTimer) {
+                clearTimeout(statusResetTimer);
+                statusResetTimer = null;
+            }
+
             statusText.textContent = text;
 
-            orb.classList.remove('listening', 'success', 'error');
+            orb.classList.remove(
+                'listening',
+                'success',
+                'error'
+            );
 
-            if (state !== 'idle') {
+            if (
+                state === 'success' ||
+                state === 'error' ||
+                state === 'listening'
+            ) {
                 orb.classList.add(state);
             }
 
-            dot.style.background =
-                state === 'error' ? '#ff5e86' :
-                state === 'success' ? '#35f6a0' :
-                state === 'listening' ? '#b46bff' :
-                '#ffbc55';
+            if (state === 'success') {
+                dot.style.background = '#35f6a0';
+            } else if (state === 'error') {
+                dot.style.background = '#ff5e86';
+            } else if (state === 'listening') {
+                dot.style.background = '#b46bff';
+            } else if (state === 'thinking') {
+                dot.style.background = '#20d8ff';
+            } else {
+                dot.style.background = '#ffbc55';
+            }
+
+            /*
+             * Return the reactor to its original colour
+             * 2.5 seconds after a successful or failed command.
+             */
+
+            if (autoReset) {
+                statusResetTimer = setTimeout(() => {
+                    if (currentVersion === statusVersion) {
+                        setStatus('Ready', 'idle');
+                    }
+                }, 2500);
+            }
         }
 
         /* EXECUTION LOG */
@@ -1024,6 +1083,7 @@
                         ].includes(u.hostname)
                     ) {
                         const a = document.createElement('a');
+
                         a.className = 'result-link';
                         a.href = u.href;
                         a.target = '_blank';
@@ -1042,46 +1102,76 @@
             return row;
         }
 
+        /* CHECK WHETHER THE BACKEND ACTUALLY SUCCEEDED */
+
+        function commandSucceeded(response, data) {
+            if (!response || !response.ok || !data) {
+                return false;
+            }
+
+            return (
+                data.success === true ||
+                String(data.state || '').toLowerCase() === 'success'
+            );
+        }
+
         /* COMMAND EXECUTION */
 
         async function executeCommand(value) {
-            const command = value.trim();
+            const command = String(value || '').trim();
 
-            if (!command || busy) return;
+            if (!command || busy) {
+                return;
+            }
 
             addMessage('user', command);
 
             input.value = '';
+
             busy = true;
             send.disabled = true;
 
             const pending = addMessage('ai', 'Working…');
 
             setStatus(
-                mode === 'ai' ? 'Thinking…' : 'Executing command…'
+                mode === 'ai'
+                    ? 'Thinking…'
+                    : 'Executing command…',
+                'thinking'
             );
 
             try {
-                let res;
+                let response;
                 let data;
 
                 if (mode === 'ai') {
-                    res = await fetch('/api/command', {
+
+                    /*
+                     * AI MODE
+                     * Keep the existing hosted AI endpoint.
+                     */
+
+                    response = await fetch('/api/command', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            command,
+                            command: command,
                             mode: 'ai'
                         })
                     });
 
-                    data = await res.json();
+                    data = await response.json();
 
                 } else {
 
-                    const sendLocal = async confirmed => {
+                    /*
+                     * LOCAL MODE
+                     * Send the command to the Windows companion.
+                     */
+
+                    const sendLocalCommand = async confirmed => {
                         return await fetch(
                             'http://127.0.0.1:8765/command',
                             {
@@ -1090,8 +1180,8 @@
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                    command,
-                                    confirmed
+                                    command: command,
+                                    confirmed: confirmed
                                 }),
                                 signal: AbortSignal.timeout(20000)
                             }
@@ -1099,29 +1189,36 @@
                     };
 
                     try {
-                        res = await sendLocal(false);
-                        data = await res.json();
+                        response = await sendLocalCommand(false);
+                        data = await response.json();
 
-                        if (data.confirmation_required) {
+                        /*
+                         * Ask for confirmation when the companion
+                         * specifically requests it.
+                         */
+
+                        if (data.confirmation_required === true) {
                             const approved = window.confirm(data.message);
 
                             if (approved) {
-                                res = await sendLocal(true);
-                                data = await res.json();
+                                response = await sendLocalCommand(true);
+                                data = await response.json();
 
                             } else {
                                 data = {
                                     success: false,
                                     state: 'error',
                                     message: 'Action cancelled. No change was made.',
-                                    command
+                                    command: command
                                 };
 
-                                res = { ok: false };
+                                response = {
+                                    ok: false
+                                };
                             }
                         }
 
-                    } catch (e) {
+                    } catch (error) {
                         pending.remove();
 
                         addMessage(
@@ -1129,41 +1226,69 @@
                             'Windows Companion is not connected. Start the latest FLXAI-Companion.exe on this same Windows PC and keep it running.'
                         );
 
-                        setStatus('Companion not connected', 'error');
+                        setStatus(
+                            'Companion not connected',
+                            'error',
+                            true
+                        );
+
                         return;
                     }
                 }
 
                 pending.remove();
 
+                const success = commandSucceeded(response, data);
+
+                const message =
+                    data && data.message
+                        ? data.message
+                        : 'The command did not return a valid response.';
+
                 addMessage(
                     'ai',
-                    data.message || 'No response received.',
-                    data.url
+                    message,
+                    data ? data.url : null
                 );
 
-                const failed =
-                    data.success === false ||
-                    data.state === 'error' ||
-                    data.category === 'error' ||
-                    !res.ok;
+                /*
+                 * IMPORTANT:
+                 * success = green
+                 * failure  = red
+                 *
+                 * The sphere automatically returns to its
+                 * original colour after 2.5 seconds.
+                 */
 
-                setStatus(
-                    failed ? 'Command failed' : 'Ready',
-                    failed ? 'error' : 'success'
-                );
+                if (success) {
+                    setStatus(
+                        'Command successful',
+                        'success',
+                        true
+                    );
+                } else {
+                    setStatus(
+                        'Command failed',
+                        'error',
+                        true
+                    );
+                }
 
-            } catch (e) {
+            } catch (error) {
                 pending.remove();
 
                 addMessage(
                     'ai',
                     mode === 'ai'
                         ? 'I couldn’t reach the FLX.AI AI service. Check your internet connection and try again.'
-                        : 'I couldn’t reach FLX.AI. Check the companion and try again.'
+                        : 'I couldn’t reach FLX.AI. Check the Windows companion and try again.'
                 );
 
-                setStatus('Connection error', 'error');
+                setStatus(
+                    'Connection error',
+                    'error',
+                    true
+                );
 
             } finally {
                 busy = false;
@@ -1178,8 +1303,8 @@
             executeCommand(input.value);
         });
 
-        input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
+        input.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
                 executeCommand(input.value);
             }
         });
@@ -1194,11 +1319,18 @@
 
         /* AI MODE AND LOCAL MODE */
 
-        function setMode(next) {
-            mode = next;
+        function setMode(nextMode) {
+            mode = nextMode;
 
-            localMode.classList.toggle('active', mode === 'local');
-            aiMode.classList.toggle('active', mode === 'ai');
+            localMode.classList.toggle(
+                'active',
+                mode === 'local'
+            );
+
+            aiMode.classList.toggle(
+                'active',
+                mode === 'ai'
+            );
 
             subText.textContent =
                 mode === 'local'
@@ -1218,26 +1350,27 @@
 
         async function checkCompanion() {
             try {
-                const r = await fetch(
+                const response = await fetch(
                     'http://127.0.0.1:8765/health',
                     {
                         signal: AbortSignal.timeout(2500)
                     }
                 );
 
-                const d = await r.json();
+                const data = await response.json();
 
-                if (r.ok && d.ok) {
+                if (response.ok && data.ok) {
                     setStatus(
-                        'Companion v' + (d.version || '?') + ' connected',
-                        'success'
+                        'Companion v' + (data.version || '?') + ' connected',
+                        'idle'
                     );
+
                     return;
                 }
 
-            } catch (e) {}
+            } catch (error) {}
 
-            setStatus('Web ready • companion offline');
+            setStatus('Web ready • companion offline', 'idle');
         }
 
         checkCompanion();
@@ -1252,7 +1385,10 @@
             frame = null;
 
             if (stream) {
-                stream.getTracks().forEach(t => t.stop());
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+
                 stream = null;
             }
 
@@ -1283,28 +1419,32 @@
                     .createMediaStreamSource(stream)
                     .connect(analyser);
 
-                const a = new Uint8Array(analyser.frequencyBinCount);
+                const values = new Uint8Array(
+                    analyser.frequencyBinCount
+                );
 
                 function tick() {
-                    if (!analyser) return;
-
-                    analyser.getByteTimeDomainData(a);
-
-                    let s = 0;
-
-                    for (const n of a) {
-                        const v = (n - 128) / 128;
-                        s += v * v;
+                    if (!analyser) {
+                        return;
                     }
+
+                    analyser.getByteTimeDomainData(values);
+
+                    let sum = 0;
+
+                    for (const value of values) {
+                        const sample = (value - 128) / 128;
+                        sum += sample * sample;
+                    }
+
+                    const level = Math.min(
+                        1,
+                        Math.sqrt(sum / values.length) * 5
+                    );
 
                     orb.style.setProperty(
                         '--level',
-                        String(
-                            Math.min(
-                                1,
-                                Math.sqrt(s / a.length) * 5
-                            )
-                        )
+                        String(level)
                     );
 
                     frame = requestAnimationFrame(tick);
@@ -1314,7 +1454,7 @@
 
                 return true;
 
-            } catch (e) {
+            } catch (error) {
                 addMessage(
                     'ai',
                     'Microphone access was denied. You can still type commands.'
@@ -1336,13 +1476,13 @@
             if (recognition) {
                 try {
                     recognition.stop();
-                } catch (e) {}
+                } catch (error) {}
             }
 
-            setStatus('Ready');
+            setStatus('Ready', 'idle');
         }
 
-        const SR =
+        const SpeechRecognition =
             window.SpeechRecognition ||
             window.webkitSpeechRecognition;
 
@@ -1355,7 +1495,7 @@
             if (
                 !navigator.mediaDevices ||
                 !navigator.mediaDevices.getUserMedia ||
-                !SR
+                !SpeechRecognition
             ) {
                 addMessage(
                     'ai',
@@ -1365,28 +1505,31 @@
                 return;
             }
 
-            if (!await startMeter()) return;
+            if (!await startMeter()) {
+                return;
+            }
 
             listening = true;
             mic.textContent = '■';
 
             setStatus('Listening…', 'listening');
 
-            recognition = new SR();
+            recognition = new SpeechRecognition();
 
             recognition.lang = 'en-IN';
             recognition.interimResults = false;
             recognition.continuous = false;
 
-            recognition.onresult = e => {
-                const spoken = e.results[0][0].transcript;
+            recognition.onresult = event => {
+                const spokenCommand =
+                    event.results[0][0].transcript;
 
                 stopMeter();
 
                 listening = false;
                 mic.textContent = '♩';
 
-                executeCommand(spoken);
+                executeCommand(spokenCommand);
             };
 
             recognition.onerror = () => {
@@ -1401,7 +1544,8 @@
 
             try {
                 recognition.start();
-            } catch (e) {
+
+            } catch (error) {
                 stopListening();
             }
         });
@@ -1411,5 +1555,6 @@
     </script>
 
 </body>
+
 </html>
 ```
