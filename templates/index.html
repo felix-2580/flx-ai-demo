@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="en">
 
@@ -7,7 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#050916">
     <meta name="description" content="FLX.AI voice-controlled Windows assistant">
-    <title>FLX.AI — Your AI Assistant</title>
+    <title>FLX.AI</title>
 
     <style>
         :root {
@@ -240,9 +239,9 @@
             margin-left: 250px;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             flex: 1;
-            padding: 14px 20px 0;
+            padding: 10px 20px 0;
             overflow: hidden;
         }
 
@@ -399,16 +398,17 @@
 
         .chat {
             width: 100%;
-            max-width: 760px;
+            max-width: 1100px;
             display: flex;
             flex-direction: column;
             gap: 9px;
             padding: 12px 5px;
-            max-height: clamp(95px, 20vh, 190px);
+            max-height: none;
             overflow-y: auto;
             overflow-x: hidden;
             flex: 1;
-            min-height: 20px;
+            min-height: 0;
+            height: 100%;
             scrollbar-width: thin;
             scrollbar-color: #294777 transparent;
         }
@@ -573,6 +573,29 @@
                 0 0 115px #ff174f44;
         }
 
+
+        /* Compact animated reactor replaces the microphone glyph */
+        #mic {
+            width: 48px; height: 48px; display: grid; place-items: center;
+            padding: 0; overflow: visible; background: #081329;
+            border-color: #245b91; transition: transform .18s ease;
+        }
+        #mic .orb {
+            width: 25px; height: 25px; border-width: 1px;
+            box-shadow: 0 0 10px #087aff99, inset 0 0 8px #b4ffff66;
+            transform: scale(calc(1 + var(--level, 0) * .22));
+            transition: transform .12s ease, filter .2s, box-shadow .2s;
+        }
+        #mic .orb:before, #mic .orb:after { inset: -15%; }
+        #mic .orb .core { width: 48%; height: 48%; }
+        #mic .orb .wave { gap: 1px; }
+        #mic .orb .wave i { width: 1.5px; height: 5px; }
+        #mic .orb .wave i:nth-child(2), #mic .orb .wave i:nth-child(4) { height: 8px; }
+        #mic .orb .wave i:nth-child(3) { height: 11px; }
+        #mic.listening { transform: scale(1.08); }
+        .main { min-height: 0; }
+        .chat { flex: 1 1 auto; }
+
         /* ANIMATIONS */
 
         @keyframes orbit {
@@ -653,7 +676,8 @@
             }
 
             .chat {
-                max-height: 21vh;
+                max-height: none;
+                min-height: 0;
             }
 
             .samples {
@@ -877,35 +901,7 @@
 
         <main class="main">
 
-            <section class="hero">
-
-                <div class="orb-wrap">
-                    <div class="orb" id="orb">
-                        <div class="core">
-                            <div class="wave">
-                                <i></i>
-                                <i></i>
-                                <i></i>
-                                <i></i>
-                                <i></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h1>Your AI Assistant</h1>
-                <p>Speak naturally. Make things happen.</p>
-
-                <p class="sub" id="subText">
-                    Local commands run through the companion on this Windows PC.
-                </p>
-
-                <div class="modes">
-                    <button class="mode active" id="localMode">LOCAL MODE</button>
-                    <button class="mode" id="aiMode">AI MODE</button>
-                </div>
-
-            </section>
+            
 
             <!-- EXECUTION LOG -->
 
@@ -920,7 +916,13 @@
                     <div class="shell">
 
                         <button class="btn" id="mic" title="Speak a command" aria-label="Speak a command">
-                            ♩
+                            <div class="orb" id="orb">
+                        <div class="core">
+                            <div class="wave">
+                                <i></i><i></i><i></i><i></i><i></i>
+                            </div>
+                        </div>
+                    </div>
                         </button>
 
                         <input
@@ -964,10 +966,7 @@
         const orb = document.getElementById('orb');
         const statusText = document.getElementById('statusText');
         const dot = document.getElementById('dot');
-        const subText = document.getElementById('subText');
         const mic = document.getElementById('mic');
-        const localMode = document.getElementById('localMode');
-        const aiMode = document.getElementById('aiMode');
 
         const commandsToggle = document.getElementById('commandsToggle');
         const commandsPanel = document.getElementById('commandsPanel');
@@ -1023,7 +1022,6 @@
 
             if (
                 state === 'success' ||
-                state === 'error' ||
                 state === 'listening'
             ) {
                 orb.classList.add(state);
@@ -1119,177 +1117,70 @@
 
         async function executeCommand(value) {
             const command = String(value || '').trim();
-
-            if (!command || busy) {
-                return;
-            }
+            if (!command || busy) return;
 
             addMessage('user', command);
-
             input.value = '';
-
             busy = true;
             send.disabled = true;
-
-            const pending = addMessage('ai', 'Working…');
-
-            setStatus(
-                mode === 'ai'
-                    ? 'Thinking…'
-                    : 'Executing command…',
-                'thinking'
-            );
+            const pending = addMessage('ai', 'Thinking…');
+            setStatus('Thinking…', 'thinking');
 
             try {
-                let response;
-                let data;
+                let response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: command, mode: 'unified' })
+                });
+                let data = await response.json();
 
-                if (mode === 'ai') {
-
-                    /*
-                     * AI MODE
-                     * Keep the existing hosted AI endpoint.
-                     */
-
-                    response = await fetch('/api/command', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            command: command,
-                            mode: 'ai'
-                        })
-                    });
-
-                    data = await response.json();
-
-                } else {
-
-                    /*
-                     * LOCAL MODE
-                     * Send the command to the Windows companion.
-                     */
-
-                    const sendLocalCommand = async confirmed => {
-                        return await fetch(
-                            'http://127.0.0.1:8765/command',
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    command: command,
-                                    confirmed: confirmed
-                                }),
-                                signal: AbortSignal.timeout(20000)
-                            }
-                        );
-                    };
+                if (data.type === 'action' && data.command) {
+                    pending.textContent = 'Executing on this PC…';
+                    const sendLocalCommand = async confirmed => fetch(
+                        'http://127.0.0.1:8765/command',
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: data.command, confirmed: confirmed }),
+                            signal: AbortSignal.timeout(20000)
+                        }
+                    );
 
                     try {
                         response = await sendLocalCommand(false);
                         data = await response.json();
-
-                        /*
-                         * Ask for confirmation when the companion
-                         * specifically requests it.
-                         */
-
                         if (data.confirmation_required === true) {
                             const approved = window.confirm(data.message);
-
                             if (approved) {
                                 response = await sendLocalCommand(true);
                                 data = await response.json();
-
                             } else {
-                                data = {
-                                    success: false,
-                                    state: 'error',
-                                    message: 'Action cancelled. No change was made.',
-                                    command: command
-                                };
-
-                                response = {
-                                    ok: false
-                                };
+                                data = { success: false, message: 'Action cancelled. No change was made.' };
+                                response = { ok: false };
                             }
                         }
-
                     } catch (error) {
                         pending.remove();
-
-                        addMessage(
-                            'ai',
-                            'Windows Companion is not connected. Start the latest FLXAI-Companion.exe on this same Windows PC and keep it running.'
-                        );
-
-                        setStatus(
-                            'Companion not connected',
-                            'error',
-                            true
-                        );
-
+                        addMessage('ai', 'Windows Companion is not connected. Start FLXAI-Companion.exe on this same Windows PC and keep it running.');
+                        setStatus('Companion not connected', 'idle', true);
                         return;
                     }
                 }
 
                 pending.remove();
+                const success = data && data.success === true && response.ok !== false;
+                addMessage('ai', data && data.message ? data.message : 'I couldn’t get a response. Please try again.');
 
-                const success = commandSucceeded(response, data);
-
-                const message =
-                    data && data.message
-                        ? data.message
-                        : 'The command did not return a valid response.';
-
-                addMessage(
-                    'ai',
-                    message,
-                    data ? data.url : null
-                );
-
-                /*
-                 * IMPORTANT:
-                 * success = green
-                 * failure  = red
-                 *
-                 * The sphere automatically returns to its
-                 * original colour after 2.5 seconds.
-                 */
-
-                if (success) {
-                    setStatus(
-                        'Command successful',
-                        'success',
-                        true
-                    );
+                if (data && data.type === 'action') {
+                    if (success) setStatus('Command successful', 'success', true);
+                    else setStatus('Command failed', 'idle', true);
                 } else {
-                    setStatus(
-                        'Command failed',
-                        'error',
-                        true
-                    );
+                    setStatus('Ready', 'idle', true);
                 }
-
             } catch (error) {
                 pending.remove();
-
-                addMessage(
-                    'ai',
-                    mode === 'ai'
-                        ? 'I couldn’t reach the FLX.AI AI service. Check your internet connection and try again.'
-                        : 'I couldn’t reach FLX.AI. Check the Windows companion and try again.'
-                );
-
-                setStatus(
-                    'Connection error',
-                    'error',
-                    true
-                );
-
+                addMessage('ai', 'I couldn’t reach the FLX.AI service. Check your internet connection and try again.');
+                setStatus('Connection error', 'idle', true);
             } finally {
                 busy = false;
                 send.disabled = false;
@@ -1315,35 +1206,6 @@
             button.addEventListener('click', () => {
                 executeCommand(button.dataset.command);
             });
-        });
-
-        /* AI MODE AND LOCAL MODE */
-
-        function setMode(nextMode) {
-            mode = nextMode;
-
-            localMode.classList.toggle(
-                'active',
-                mode === 'local'
-            );
-
-            aiMode.classList.toggle(
-                'active',
-                mode === 'ai'
-            );
-
-            subText.textContent =
-                mode === 'local'
-                    ? 'Windows actions run through the companion on this PC.'
-                    : 'Ask questions, write code, or brainstorm with AI. Requires a configured AI key.';
-        }
-
-        localMode.addEventListener('click', () => {
-            setMode('local');
-        });
-
-        aiMode.addEventListener('click', () => {
-            setMode('ai');
         });
 
         /* COMPANION CONNECTION */
@@ -1468,10 +1330,10 @@
 
         function stopListening() {
             listening = false;
-
+            mic.classList.remove('listening');
             stopMeter();
 
-            mic.textContent = '♩';
+
 
             if (recognition) {
                 try {
@@ -1510,8 +1372,7 @@
             }
 
             listening = true;
-            mic.textContent = '■';
-
+            mic.classList.add('listening');
             setStatus('Listening…', 'listening');
 
             recognition = new SpeechRecognition();
@@ -1527,8 +1388,7 @@
                 stopMeter();
 
                 listening = false;
-                mic.textContent = '♩';
-
+                mic.classList.remove('listening');
                 executeCommand(spokenCommand);
             };
 
