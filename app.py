@@ -15,8 +15,8 @@ from flask import Flask, jsonify, render_template, request
 app = Flask(__name__)
 
 # Use stable Gemini models. These can be overridden in Render environment variables.
-PRIMARY_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash").strip()
-FALLBACK_MODEL = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite").strip()
+PRIMARY_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
+FALLBACK_MODEL = os.environ.get("GEMINI_FALLBACK_MODEL", "").strip()
 
 SYSTEM_PROMPT = """You are FLX.AI, a helpful general-purpose AI assistant with an optional Windows companion.
 Return exactly one valid JSON object in one of these forms:
@@ -90,6 +90,8 @@ def direct_action(user_text: str):
         return action(text)
     if text.startswith("look up "):
         return action("search " + text[8:].strip())
+    if text in {"can you open", "could you open", "open something", "launch something"}:
+        return answer("Sure — what would you like me to open?")
     if text.startswith("open "):
         return action(text)
 
@@ -311,7 +313,8 @@ def gemini_request(model: str, key: str, prompt: str):
 
 def request_model_with_retry(model: str, key: str, prompt: str):
     last_error = None
-    for attempt in range(2):
+    # Do not multiply Gemini usage with automatic retries.
+    for attempt in range(1):
         try:
             return gemini_request(model, key, prompt), None
         except urllib.error.HTTPError as exc:
@@ -377,7 +380,7 @@ def ask_gemini(prompt: str):
             # Only switch model for service/capacity/network failures. Bad key or malformed request won't improve with another model.
             code = error.get("code")
             status = str(error.get("status", "")).lower()
-            if index == 0 and (code in {0, 500, 503, 504} or (code == 429 and status != "quota_exceeded")):
+            if index == 0 and FALLBACK_MODEL and code in {500, 503, 504}:
                 continue
             break
 
@@ -447,7 +450,10 @@ def api_command():
         return jsonify(direct)
 
     if mode == "local":
-        return jsonify(answer("I couldn't identify that as a supported local Windows command. Try 'help' to see examples."))
+        interpreted = ask_gemini(prompt)
+        if interpreted.get("type") == "action":
+            return jsonify(interpreted)
+        return jsonify(answer("I couldn't map that to a supported Windows action. " + interpreted.get("message", "Try rephrasing the command.")))
 
     return jsonify(ask_gemini(prompt))
 
