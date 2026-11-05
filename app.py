@@ -29,7 +29,8 @@ When asked what you can do, explain that you can answer questions, explain conce
 Do not treat ordinary questions as Windows commands.
 
 Supported Windows actions (use concise canonical commands):
-- Open known apps, websites, and folders: open calculator; open file explorer; open chrome; open downloads; open youtube; open settings; open task manager.
+- Open known apps, websites, and folders: open calculator; open file explorer; open chrome; open downloads; open youtube; open settings; open task manager; open guest mode in chrome; open incognito in chrome.
+- Window management: minimize window; maximize window; restore window; close window.
 - Search: search <query>.
 - Volume: increase volume; decrease volume; increase volume by 10; decrease volume by 10; set volume to 50; mute; unmute.
 - Brightness: increase brightness; decrease brightness; increase brightness by 10; decrease brightness by 10; set brightness to 50.
@@ -62,7 +63,8 @@ ALLOWED_ACTION_PREFIXES = (
     "resume music", "next track", "previous track", "show ",
     "take screenshot", "copy ", "clear clipboard", "what time", "current time",
     "tell me the time", "time now", "today", "what date", "calculate ",
-    "compute ", "help", "commands",
+    "compute ", "minimize window", "minimise window", "maximize window",
+    "maximise window", "restore window", "close window", "help", "commands",
 )
 
 
@@ -163,6 +165,10 @@ def direct_action(user_text: str):
         "copy clipboard": "copy clipboard", "clear clipboard": "clear clipboard",
         "play pause": "play pause", "pause music": "pause music", "resume music": "resume music",
         "next song": "next track", "previous song": "previous track",
+        "minimize this window": "minimize window", "minimise this window": "minimize window",
+        "minimize current window": "minimize window", "minimise current window": "minimize window",
+        "maximize this window": "maximize window", "maximise this window": "maximize window",
+        "restore this window": "restore window", "close this window": "close window",
         "help": "help", "show commands": "help",
     }
     if text in aliases:
@@ -177,6 +183,8 @@ def direct_action(user_text: str):
         "show battery", "show cpu usage", "show memory usage", "show disk space",
         "show running processes", "show network status", "show system information",
         "take screenshot", "copy clipboard", "clear clipboard", "today's date",
+        "minimize window", "minimise window", "maximize window", "maximise window",
+        "restore window", "close window",
         "what date", "current date", "cancel shutdown", "play pause", "next track",
         "previous track", "help", "commands",
     }:
