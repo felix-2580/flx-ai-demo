@@ -1215,10 +1215,15 @@
         }
 
         /* COMMAND EXECUTION */
+        let pendingWeatherCity = false;
 
         async function executeCommand(value) {
-            const command = String(value || '').trim();
+            let command = String(value || '').trim();
             if (!command || busy) return;
+            if (pendingWeatherCity && /^[a-zA-Z][a-zA-Z .'-]{1,60}$/.test(command)) {
+                command = 'weather in ' + command;
+                pendingWeatherCity = false;
+            }
 
             startIntroTransition();
             addMessage('user', command);
@@ -1235,6 +1240,11 @@
                     body: JSON.stringify({ command: command, mode: 'unified' })
                 });
                 let data = await response.json();
+                if (data.type === 'answer' && /which city should i check the weather/i.test(data.message || '')) {
+                    pendingWeatherCity = true;
+                } else if (data.type === 'action' || /current weather for/i.test(data.message || '')) {
+                    pendingWeatherCity = false;
+                }
 
                 if (data.type === 'action' && data.command) {
                     pending.textContent = 'Executing on this PC…';
@@ -1273,7 +1283,7 @@
                 const success = data && data.success === true && response.ok !== false;
                 addMessage('ai', data && data.message ? data.message : 'I couldn’t get a response. Please try again.');
 
-                if (data && data.type === 'action') {
+                if (data && Object.prototype.hasOwnProperty.call(data, 'success')) {
                     if (success) setStatus('Command successful', 'success', true);
                     else setStatus('Command failed', 'idle', true);
                 } else {
