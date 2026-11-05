@@ -244,8 +244,13 @@ def live_weather(city: str):
             f"precipitation {current.get('precipitation', 'N/A')} mm."
         )
         return answer(message)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:220]
+        return answer(f"The weather provider returned HTTP {exc.code}. {detail or 'Please try again shortly.'}")
+    except (urllib.error.URLError, TimeoutError) as exc:
+        return answer(f"The weather service could not be reached ({type(exc).__name__}). Please try again shortly.")
     except Exception as exc:
-        return answer(f"I couldn't retrieve live weather right now ({type(exc).__name__}). Please try again shortly.")
+        return answer(f"I couldn't retrieve live weather right now ({type(exc).__name__}: {exc}). Please try again shortly.")
 
 
 def city_time(city: str):
