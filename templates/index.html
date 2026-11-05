@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#050916">
@@ -596,6 +599,59 @@
         .main { min-height: 0; }
         .chat { flex: 1 1 auto; }
 
+
+        /* FLX.AI opening identity and first-message transition */
+        .brand {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            letter-spacing: .10em;
+            color: #e8f7ff;
+            text-shadow: 0 0 12px #00bfff66, 0 0 28px #246bff44;
+            z-index: 20;
+        }
+        .brand b {
+            color: #36dfff;
+            text-shadow: 0 0 14px #00cfff;
+        }
+        .brand small { font-family: Inter, system-ui, sans-serif; }
+        body.intro-mode .brand {
+            position: fixed;
+            left: 50%;
+            top: 34%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(34px, 5vw, 54px);
+            white-space: nowrap;
+            text-align: center;
+            z-index: 30;
+            transition: none;
+        }
+        body.intro-mode .brand small {
+            margin-top: 10px;
+            font-size: 9px;
+            letter-spacing: .28em;
+        }
+        body.intro-mode #orb {
+            position: fixed;
+            left: 50%;
+            top: 55%;
+            width: clamp(120px, 18vw, 165px);
+            height: auto;
+            z-index: 31;
+            transform: translate(-50%, -50%) scale(1);
+            transition: none;
+        }
+        body.intro-mode #mic { overflow: visible; }
+        body.intro-mode .chat {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .chat { transition: opacity .35s ease; }
+        body:not(.intro-mode) .chat {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #mic .orb { will-change: transform; }
+
         /* ANIMATIONS */
 
         @keyframes orbit {
@@ -705,7 +761,7 @@
     </style>
 </head>
 
-<body>
+<body class="intro-mode">
 
     <div class="app">
 
@@ -1113,12 +1169,58 @@
             );
         }
 
+
+        /* Move the real logo and reactor into their final UI positions once */
+        let introTransitionStarted = false;
+
+        function animateTravel(element, startRect, endRect, duration) {
+            const dx = startRect.left - endRect.left;
+            const dy = startRect.top - endRect.top;
+            const sx = startRect.width / Math.max(endRect.width, 1);
+            const sy = startRect.height / Math.max(endRect.height, 1);
+
+            element.animate([
+                {
+                    transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+                    transformOrigin: 'top left'
+                },
+                {
+                    transform: 'translate(0, 0) scale(1, 1)',
+                    transformOrigin: 'top left'
+                }
+            ], {
+                duration,
+                easing: 'cubic-bezier(.22, 1, .36, 1)',
+                fill: 'none'
+            });
+        }
+
+        function startIntroTransition() {
+            if (introTransitionStarted || !document.body.classList.contains('intro-mode')) return;
+            introTransitionStarted = true;
+
+            const brand = document.querySelector('.brand');
+            const sphere = document.getElementById('orb');
+            const brandStart = brand.getBoundingClientRect();
+            const sphereStart = sphere.getBoundingClientRect();
+
+            document.body.classList.remove('intro-mode');
+
+            const brandEnd = brand.getBoundingClientRect();
+            const sphereEnd = sphere.getBoundingClientRect();
+
+            animateTravel(brand, brandStart, brandEnd, 850);
+            animateTravel(sphere, sphereStart, sphereEnd, 950);
+            chat.style.opacity = '1';
+        }
+
         /* COMMAND EXECUTION */
 
         async function executeCommand(value) {
             const command = String(value || '').trim();
             if (!command || busy) return;
 
+            startIntroTransition();
             addMessage('user', command);
             input.value = '';
             busy = true;
