@@ -14,9 +14,11 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# Use stable Gemini models. These can be overridden in Render environment variables.
-PRIMARY_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
-FALLBACK_MODEL = os.environ.get("GEMINI_FALLBACK_MODEL", "").strip()
+# Pin FLX.AI to Gemini 3.5 Flash.
+# Deliberately do not read GEMINI_MODEL / GEMINI_FALLBACK_MODEL from Render:
+# stale environment variables must not silently switch the app back to Gemini 2.5.
+PRIMARY_MODEL = "gemini-3.5-flash"
+FALLBACK_MODEL = ""
 
 SYSTEM_PROMPT = """You are FLX.AI, a helpful general-purpose AI assistant with an optional Windows companion.
 Return exactly one valid JSON object in one of these forms:
@@ -380,10 +382,8 @@ def ask_gemini(prompt: str):
     if not key:
         return answer("Gemini is not configured. Add GEMINI_API_KEY in the Render environment variables.")
 
-    # First try the configured primary model, then a cheaper stable fallback.
+    # Use only the pinned model. Do not silently downgrade to another Gemini generation.
     models = [PRIMARY_MODEL]
-    if FALLBACK_MODEL and FALLBACK_MODEL != PRIMARY_MODEL:
-        models.append(FALLBACK_MODEL)
 
     errors = []
     for index, model in enumerate(models):
@@ -413,7 +413,7 @@ def ask_gemini(prompt: str):
         code = error.get("code")
         message = error.get("message", "No additional details were provided.")
         if code == 503:
-            return answer("Gemini is temporarily overloaded or unavailable (503). FLX.AI retried and tried its fallback model, but the service still did not respond. This does not by itself mean your API key is invalid. Please try again in a little while.")
+            return answer(f"{model} is temporarily overloaded or unavailable (503). FLX.AI is pinned to this model and did not switch to Gemini 2.5 or another fallback. This does not by itself mean your API key is invalid. Please try again in a little while.")
         if code == 429:
             return answer(f"Gemini rate limit or quota issue (429): {message}")
         if code in {401, 403}:
