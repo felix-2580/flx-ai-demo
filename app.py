@@ -14,11 +14,9 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# Pin FLX.AI to Gemini 3.5 Flash.
-# Deliberately do not read GEMINI_MODEL / GEMINI_FALLBACK_MODEL from Render:
-# stale environment variables must not silently switch the app back to Gemini 2.5.
-PRIMARY_MODEL = "gemini-3.5-flash"
-FALLBACK_MODEL = ""
+# Groq configuration. Override GROQ_MODEL in Render if you choose another
+# model available to your Groq account.
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 
 SYSTEM_PROMPT = """You are FLX.AI, a helpful general-purpose AI assistant with an optional Windows companion.
 Return exactly one valid JSON object in one of these forms:
@@ -87,7 +85,7 @@ def clean_command(value: str) -> str:
 
 
 def direct_action(user_text: str):
-    """Recognize unambiguous local commands without spending a Gemini request."""
+    """Recognize unambiguous local commands without spending a Groq request."""
     text = clean_command(user_text)
 
     if text.startswith("search "):
@@ -294,7 +292,7 @@ def live_information_request(prompt: str):
 def parse_model_json(raw: str):
     raw = (raw or "").strip().lstrip("\\ufeff")
     if not raw:
-        raise ValueError("Gemini returned an empty text part.")
+        raise ValueError("Groq returned an empty text part.")
 
     # Remove optional Markdown fences without assuming they are present.
     raw = re.sub(r"^\`\`\`(?:json)?\\s*", "", raw, flags=re.I)
@@ -305,7 +303,7 @@ def parse_model_json(raw: str):
         parsed = json.loads(raw)
         if isinstance(parsed, dict):
             return parsed
-        raise ValueError("Gemini JSON response was not an object.")
+        raise ValueError("Groq JSON response was not an object.")
     except json.JSONDecodeError:
         pass
 
@@ -313,7 +311,7 @@ def parse_model_json(raw: str):
     # Extract the first complete JSON object while respecting quoted braces.
     start = raw.find("{")
     if start < 0:
-        raise ValueError("Gemini response did not contain a JSON object.")
+        raise ValueError("Groq response did not contain a JSON object.")
 
     depth = 0
     in_string = False
@@ -341,48 +339,45 @@ def parse_model_json(raw: str):
                     parsed = json.loads(candidate)
                     if isinstance(parsed, dict):
                         return parsed
-                    raise ValueError("Gemini JSON response was not an object.")
+                    raise ValueError("Groq JSON response was not an object.")
                 except json.JSONDecodeError:
                     # Allow harmless trailing commas before } or ].
                     repaired = re.sub(r",\\s*([}\\]])", r"\\1", candidate)
                     parsed = json.loads(repaired)
                     if isinstance(parsed, dict):
                         return parsed
-                    raise ValueError("Gemini JSON response was not an object.")
+                    raise ValueError("Groq JSON response was not an object.")
 
-    raise ValueError("Gemini response contained an incomplete JSON object.")
+    raise ValueError("Groq response contained an incomplete JSON object.")
 
 
-def gemini_request(model: str, key: str, prompt: str):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+def groq_request(model: str, key: str, prompt: str):
+    url = "https://api.groq.com/openai/v1/chat/completions"
     payload = {
-        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": {
-                "type": "OBJECT",
-                "properties": {
-                    "type": {"type": "STRING", "enum": ["answer", "action"]},
-                    "message": {"type": "STRING"},
-                    "command": {"type": "STRING"},
-                },
-                "required": ["type"],
-            },
-            "maxOutputTokens": 700,
-        },
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.2,
+        "max_completion_tokens": 2048,
+        "stream": False,
     }
     request_data = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json", "x-goog-api-key": key},
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {key}",
+        },
         method="POST",
     )
-    with urllib.request.urlopen(request_data, timeout=25) as response:
+    with urllib.request.urlopen(request_data, timeout=45) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
-def request_model_with_retry(model: str, key: str, prompt: str):
+def request_groq_with_retry(model: str, key: str, prompt: str):
     last_error = None
     max_attempts = 3
 
@@ -390,15 +385,15 @@ def request_model_with_retry(model: str, key: str, prompt: str):
         attempt_number = attempt + 1
         started_at = time.monotonic()
         print(
-            f"[FLX.AI][Gemini] request_start model={model} "
+            f"[FLX.AI][Groq] request_start model={model} "
             f"attempt={attempt_number}/{max_attempts}",
             flush=True,
         )
         try:
-            data = gemini_request(model, key, prompt)
+            data = groq_request(model, key, prompt)
             elapsed = time.monotonic() - started_at
             print(
-                f"[FLX.AI][Gemini] request_success model={model} "
+                f"[FLX.AI][Groq] request_success model={model} "
                 f"attempt={attempt_number} duration_seconds={elapsed:.2f}",
                 flush=True,
             )
@@ -407,18 +402,19 @@ def request_model_with_retry(model: str, key: str, prompt: str):
             body = exc.read().decode("utf-8", errors="replace")
             try:
                 error_json = json.loads(body).get("error", {})
-                message = error_json.get("message", body[:1000])
-                status_name = error_json.get("status", "")
+                if isinstance(error_json, dict):
+                    message = error_json.get("message", body[:1000])
+                    status_name = error_json.get("code", error_json.get("type", ""))
+                else:
+                    message, status_name = str(error_json), ""
             except Exception:
                 message, status_name = body[:1000], ""
 
             elapsed = time.monotonic() - started_at
-            last_error = {"code": exc.code, "status": status_name, "message": message}
-            retryable = exc.code in {500, 503, 504} or (
-                exc.code == 429 and status_name.lower() not in {"quota_exceeded"}
-            )
+            last_error = {"code": exc.code, "status": str(status_name), "message": message}
+            retryable = exc.code in {408, 429, 500, 502, 503, 504}
             print(
-                f"[FLX.AI][Gemini] request_error model={model} "
+                f"[FLX.AI][Groq] request_error model={model} "
                 f"attempt={attempt_number}/{max_attempts} http_status={exc.code} "
                 f"api_status={status_name or 'not_provided'} "
                 f"duration_seconds={elapsed:.2f} message={message}",
@@ -429,7 +425,7 @@ def request_model_with_retry(model: str, key: str, prompt: str):
 
             delay = 1.0 * (2 ** attempt)
             print(
-                f"[FLX.AI][Gemini] retrying model={model} "
+                f"[FLX.AI][Groq] retrying model={model} "
                 f"after_seconds={delay:.1f}",
                 flush=True,
             )
@@ -438,7 +434,7 @@ def request_model_with_retry(model: str, key: str, prompt: str):
             elapsed = time.monotonic() - started_at
             last_error = {"code": 0, "status": "NETWORK_ERROR", "message": str(exc)}
             print(
-                f"[FLX.AI][Gemini] network_error model={model} "
+                f"[FLX.AI][Groq] network_error model={model} "
                 f"attempt={attempt_number}/{max_attempts} "
                 f"duration_seconds={elapsed:.2f} message={exc}",
                 flush=True,
@@ -450,7 +446,7 @@ def request_model_with_retry(model: str, key: str, prompt: str):
             elapsed = time.monotonic() - started_at
             last_error = {"code": 0, "status": "RESPONSE_ERROR", "message": f"{type(exc).__name__}: {exc}"}
             print(
-                f"[FLX.AI][Gemini] response_error model={model} "
+                f"[FLX.AI][Groq] response_error model={model} "
                 f"attempt={attempt_number} duration_seconds={elapsed:.2f} "
                 f"message={type(exc).__name__}: {exc}",
                 flush=True,
@@ -479,62 +475,64 @@ def validate_model_result(obj):
     return answer("I received an unexpected response format. Please try again.")
 
 
-def ask_gemini(prompt: str):
-    key = os.environ.get("GEMINI_API_KEY", "").strip()
+def ask_groq(prompt: str):
+    key = os.environ.get("GROQ_API_KEY", "").strip()
     if not key:
-        return answer("Gemini is not configured. Add GEMINI_API_KEY in the Render environment variables.")
+        return answer("Groq is not configured. Add GROQ_API_KEY in the Render environment variables.")
 
-    # Use only the pinned model. Do not silently downgrade to another Gemini generation.
-    models = [PRIMARY_MODEL]
+    model = GROQ_MODEL or "llama-3.3-70b-versatile"
+    data, error = request_groq_with_retry(model, key, prompt)
 
-    errors = []
-    for index, model in enumerate(models):
-        data, error = request_model_with_retry(model, key, prompt)
-        if error:
-            errors.append((model, error))
-            # Only switch model for service/capacity/network failures. Bad key or malformed request won't improve with another model.
-            code = error.get("code")
-            status = str(error.get("status", "")).lower()
-            if index == 0 and FALLBACK_MODEL and code in {500, 503, 504}:
-                continue
-            break
-
-        try:
-            candidates = data.get("candidates") or []
-            parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
-            raw = "\n".join(part.get("text", "") for part in parts if part.get("text"))
-            if not raw:
-                finish = candidates[0].get("finishReason", "unknown") if candidates else "no candidates"
-                return answer(f"The AI service returned no text (finish reason: {finish}). Please rephrase and try again.")
-            return validate_model_result(parse_model_json(raw))
-        except Exception as exc:
-            # Log only response-format metadata, not the user's prompt or generated content.
-            print(
-                f"[FLX.AI][Gemini] response_parse_error model={model} "
-                f"error={type(exc).__name__}: {exc} "
-                f"finish_reason={candidates[0].get('finishReason', 'unknown') if candidates else 'no_candidates'} "
-                f"candidate_count={len(candidates)}",
-                flush=True,
-            )
-            return answer(f"I couldn't understand the AI service response ({type(exc).__name__}). Please try again.")
-
-    if errors:
-        model, error = errors[-1]
+    if error:
         code = error.get("code")
         message = error.get("message", "No additional details were provided.")
-        if code == 503:
-            return answer(f"{model} is temporarily overloaded or unavailable (503). FLX.AI is pinned to this model and did not switch to Gemini 2.5 or another fallback. This does not by itself mean your API key is invalid. Please try again in a little while.")
+        if code == 401:
+            return answer("Groq authentication failed (401). Check the GROQ_API_KEY in Render.")
+        if code == 403:
+            return answer(f"Groq denied access (403): {message}. Check your account and model access.")
+        if code == 404:
+            return answer(f"Groq could not find the configured model '{model}' (404). Check GROQ_MODEL in Render.")
         if code == 429:
-            return answer(f"Gemini rate limit or quota issue (429): {message}")
-        if code in {401, 403}:
-            return answer(f"Gemini authentication/permission error ({code}): {message}. Check the GEMINI_API_KEY and API access in Google AI Studio.")
+            return answer(f"Groq rate limit or quota reached (429): {message}")
         if code == 400:
-            return answer(f"Gemini rejected the request (400): {message}. Check the model name and request settings.")
+            return answer(f"Groq rejected the request (400): {message}. Check the configured model and request settings.")
         if code == 0:
-            return answer(f"FLX.AI couldn't reach Gemini ({error.get('status', 'network error')}): {message}")
-        return answer(f"Gemini request failed ({code}) using {model}: {message}")
+            return answer(f"FLX.AI couldn't reach Groq ({error.get('status', 'network error')}): {message}")
+        return answer(f"Groq request failed ({code}) using {model}: {message}")
 
-    return answer("Gemini did not return a usable response. Please try again.")
+    choices = data.get("choices") or []
+    if not choices:
+        print(
+            f"[FLX.AI][Groq] response_parse_error model={model} "
+            "error=no_choices finish_reason=unknown",
+            flush=True,
+        )
+        return answer("Groq returned no response choices. Please try again.")
+
+    choice = choices[0]
+    message_obj = choice.get("message") or {}
+    raw = message_obj.get("content") or ""
+    finish_reason = choice.get("finish_reason", "unknown")
+
+    if not raw.strip():
+        print(
+            f"[FLX.AI][Groq] response_parse_error model={model} "
+            f"error=empty_content finish_reason={finish_reason}",
+            flush=True,
+        )
+        return answer(f"Groq returned an empty response (finish reason: {finish_reason}). Please try again.")
+
+    try:
+        return validate_model_result(parse_model_json(raw))
+    except Exception as exc:
+        print(
+            f"[FLX.AI][Groq] response_parse_error model={model} "
+            f"error={type(exc).__name__}: {exc} finish_reason={finish_reason}",
+            flush=True,
+        )
+        if finish_reason == "length":
+            return answer("Groq reached its response-length limit. Please try asking for a shorter answer.")
+        return answer(f"I couldn't understand the Groq response ({type(exc).__name__}). Please try again.")
 
 
 @app.get("/")
@@ -547,9 +545,9 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "FLX.AI",
-        "ai_enabled": bool(os.environ.get("GEMINI_API_KEY", "").strip()),
-        "primary_model": PRIMARY_MODEL,
-        "fallback_model": FALLBACK_MODEL,
+        "ai_enabled": bool(os.environ.get("GROQ_API_KEY", "").strip()),
+        "provider": "groq",
+        "model": GROQ_MODEL,
     })
 
 
@@ -573,12 +571,12 @@ def api_command():
         return jsonify(direct)
 
     if mode == "local":
-        interpreted = ask_gemini(prompt)
+        interpreted = ask_groq(prompt)
         if interpreted.get("type") == "action":
             return jsonify(interpreted)
         return jsonify(answer("I couldn't map that to a supported Windows action. " + interpreted.get("message", "Try rephrasing the command.")))
 
-    return jsonify(ask_gemini(prompt))
+    return jsonify(ask_groq(prompt))
 
 
 if __name__ == "__main__":
