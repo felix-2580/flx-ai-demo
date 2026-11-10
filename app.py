@@ -292,18 +292,65 @@ def live_information_request(prompt: str):
 
 
 def parse_model_json(raw: str):
-    raw = (raw or "").strip()
-    if raw.startswith("```"):
-        raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.I)
-        raw = re.sub(r"\s*```$", "", raw)
+    raw = (raw or "").strip().lstrip("\\ufeff")
+    if not raw:
+        raise ValueError("Gemini returned an empty text part.")
+
+    # Remove optional Markdown fences without assuming they are present.
+    raw = re.sub(r"^\`\`\`(?:json)?\\s*", "", raw, flags=re.I)
+    raw = re.sub(r"\\s*\`\`\`$", "", raw)
+
+    # First try the complete response.
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict):
+            return parsed
+        raise ValueError("Gemini JSON response was not an object.")
     except json.JSONDecodeError:
-        start = raw.find("{")
-        end = raw.rfind("}")
-        if start >= 0 and end > start:
-            return json.loads(raw[start:end + 1])
-        raise
+        pass
+
+    # Some model responses contain a short preamble or trailing text.
+    # Extract the first complete JSON object while respecting quoted braces.
+    start = raw.find("{")
+    if start < 0:
+        raise ValueError("Gemini response did not contain a JSON object.")
+
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(start, len(raw)):
+        char = raw[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                candidate = raw[start:index + 1]
+                try:
+                    parsed = json.loads(candidate)
+                    if isinstance(parsed, dict):
+                        return parsed
+                    raise ValueError("Gemini JSON response was not an object.")
+                except json.JSONDecodeError:
+                    # Allow harmless trailing commas before } or ].
+                    repaired = re.sub(r",\\s*([}\\]])", r"\\1", candidate)
+                    parsed = json.loads(repaired)
+                    if isinstance(parsed, dict):
+                        return parsed
+                    raise ValueError("Gemini JSON response was not an object.")
+
+    raise ValueError("Gemini response contained an incomplete JSON object.")
 
 
 def gemini_request(model: str, key: str, prompt: str):
@@ -313,6 +360,15 @@ def gemini_request(model: str, key: str, prompt: str):
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {
             "responseMimeType": "application/json",
+            "responseSchema": {
+                "type": "OBJECT",
+                "properties": {
+                    "type": {"type": "STRING", "enum": ["answer", "action"]},
+                    "message": {"type": "STRING"},
+                    "command": {"type": "STRING"},
+                },
+                "required": ["type"],
+            },
             "maxOutputTokens": 700,
         },
     }
@@ -452,6 +508,14 @@ def ask_gemini(prompt: str):
                 return answer(f"The AI service returned no text (finish reason: {finish}). Please rephrase and try again.")
             return validate_model_result(parse_model_json(raw))
         except Exception as exc:
+            # Log only response-format metadata, not the user's prompt or generated content.
+            print(
+                f"[FLX.AI][Gemini] response_parse_error model={model} "
+                f"error={type(exc).__name__}: {exc} "
+                f"finish_reason={candidates[0].get('finishReason', 'unknown') if candidates else 'no_candidates'} "
+                f"candidate_count={len(candidates)}",
+                flush=True,
+            )
             return answer(f"I couldn't understand the AI service response ({type(exc).__name__}). Please try again.")
 
     if errors:
