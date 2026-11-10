@@ -7,6 +7,7 @@ import json
 import os
 import re
 import time
+import threading
 import urllib.error
 import urllib.request
 
@@ -14,9 +15,12 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# Groq configuration. Override GROQ_MODEL in Render if you choose another
-# model available to your Groq account.
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
+# Groq model selection. GROQ_MODEL is optional; when omitted, FLX.AI
+# discovers active models available to this API key and selects dynamically.
+GROQ_MODEL_OVERRIDE = os.environ.get("GROQ_MODEL", "").strip()
+GROQ_MODELS_CACHE_SECONDS = 600
+_GROQ_MODELS_CACHE = {"expires": 0.0, "models": []}
+_GROQ_MODELS_LOCK = threading.Lock()
 
 SYSTEM_PROMPT = """You are FLX.AI, a helpful general-purpose AI assistant with an optional Windows companion.
 Return exactly one valid JSON object in one of these forms:
@@ -351,6 +355,66 @@ def parse_model_json(raw: str):
     raise ValueError("Groq response contained an incomplete JSON object.")
 
 
+def discover_groq_models(key: str, force_refresh: bool = False):
+    """Return active model IDs visible to this API key, cached for ten minutes."""
+    now = time.monotonic()
+    with _GROQ_MODELS_LOCK:
+        if (
+            not force_refresh
+            and _GROQ_MODELS_CACHE["models"]
+            and now < _GROQ_MODELS_CACHE["expires"]
+        ):
+            return list(_GROQ_MODELS_CACHE["models"])
+
+        url = "https://api.groq.com/openai/v1/models"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {key}",
+                "User-Agent": "FLX.AI/1.0 (+https://github.com/felix-2580/flx-ai-demo)",
+            },
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        entries = payload.get("data") or []
+        model_ids = []
+        excluded_terms = (
+            "whisper", "transcribe", "speech", "audio", "embedding",
+            "rerank", "guard", "safeguard", "moderation",
+        )
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            model_id = str(entry.get("id", "")).strip()
+            if not model_id or entry.get("active") is False:
+                continue
+            if any(term in model_id.lower() for term in excluded_terms):
+                continue
+            model_ids.append(model_id)
+
+        # Prefer economical general-purpose chat models where available.
+        # The API's model-list response does not expose prices or free-tier
+        # eligibility; account access and rate limits are enforced by Groq.
+        priority = {
+            "openai/gpt-oss-20b": 0,
+            "openai/gpt-oss-120b": 1,
+            "qwen/qwen3.8-27b": 2,
+            "qwen/qwen3.6-27b": 3,
+        }
+        model_ids = sorted(set(model_ids), key=lambda item: (priority.get(item, 100), item.lower()))
+
+        _GROQ_MODELS_CACHE["models"] = model_ids
+        _GROQ_MODELS_CACHE["expires"] = time.monotonic() + GROQ_MODELS_CACHE_SECONDS
+        print(
+            f"[FLX.AI][Groq] model_discovery_success active_chat_candidates={len(model_ids)}",
+            flush=True,
+        )
+        return list(model_ids)
+
+
 def groq_request(model: str, key: str, prompt: str):
     url = "https://api.groq.com/openai/v1/chat/completions"
     payload = {
@@ -458,6 +522,99 @@ def request_groq_with_retry(model: str, key: str, prompt: str):
     return None, last_error
 
 
+def model_error_allows_fallback(error):
+    """Only switch models for model-specific or JSON-mode incompatibility."""
+    if not error:
+        return False
+    code = error.get("code")
+    status = str(error.get("status", "")).lower()
+    message = str(error.get("message", "")).lower()
+
+    # Cloudflare blocks and account-wide throttling are not fixed by changing models.
+    if "1010" in message or "cloudflare" in message:
+        return False
+    if code == 404 or "model_not_found" in status:
+        return True
+    if code == 403:
+        return "model" in message and any(word in message for word in ("access", "available", "permission", "not found"))
+    if code == 400:
+        return any(term in message for term in (
+            "response_format", "json mode", "json_object", "structured output",
+            "does not support", "not supported for this model",
+        ))
+    return False
+
+
+def request_groq_with_fallback(key: str, prompt: str):
+    """Try an optional configured model first, then discovered compatible candidates."""
+    try:
+        discovered = discover_groq_models(key)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
+        return None, {
+            "code": exc.code,
+            "status": "MODEL_DISCOVERY_ERROR",
+            "message": detail or str(exc),
+        }
+    except Exception as exc:
+        return None, {
+            "code": 0,
+            "status": "MODEL_DISCOVERY_ERROR",
+            "message": f"{type(exc).__name__}: {exc}",
+        }
+
+    candidates = []
+    if GROQ_MODEL_OVERRIDE:
+        candidates.append(GROQ_MODEL_OVERRIDE)
+    candidates.extend(model for model in discovered if model not in candidates)
+
+    if not candidates:
+        return None, {
+            "code": 0,
+            "status": "NO_CHAT_MODELS",
+            "message": "Groq returned no active chat-model candidates for this API key.",
+        }
+
+    attempted = set()
+    last_error = None
+    refreshed_after_missing_model = False
+
+    index = 0
+    while index < len(candidates):
+        model = candidates[index]
+        index += 1
+        if model in attempted:
+            continue
+        attempted.add(model)
+
+        data, error = request_groq_with_retry(model, key, prompt)
+        if not error:
+            return data, None
+
+        last_error = error
+        if not model_error_allows_fallback(error):
+            return None, error
+
+        print(
+            f"[FLX.AI][Groq] model_fallback_from={model} "
+            f"reason={error.get('status') or error.get('code')}",
+            flush=True,
+        )
+
+        if error.get("code") == 404 and not refreshed_after_missing_model:
+            refreshed_after_missing_model = True
+            try:
+                refreshed = discover_groq_models(key, force_refresh=True)
+                candidates.extend(item for item in refreshed if item not in attempted and item not in candidates)
+            except Exception as exc:
+                print(
+                    f"[FLX.AI][Groq] model_refresh_failed "
+                    f"error={type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+
+    return None, last_error
+
 def validate_model_result(obj):
     if not isinstance(obj, dict):
         return answer("I received an invalid response from the AI service. Please try again.")
@@ -482,31 +639,36 @@ def ask_groq(prompt: str):
     if not key:
         return answer("Groq is not configured. Add GROQ_API_KEY in the Render environment variables.")
 
-    model = GROQ_MODEL or "llama-3.3-70b-versatile"
-    data, error = request_groq_with_retry(model, key, prompt)
+    data, error = request_groq_with_fallback(key, prompt)
 
     if error:
         code = error.get("code")
+        status = error.get("status", "")
         message = error.get("message", "No additional details were provided.")
         if code == 401:
             return answer("Groq authentication failed (401). Check the GROQ_API_KEY in Render.")
         if code == 403:
-            return answer(f"Groq denied access (403): {message}. Check your account and model access.")
+            if "1010" in str(message) or "cloudflare" in str(message).lower():
+                return answer(f"Groq's security layer blocked FLX.AI (403): {message}.")
+            return answer(f"Groq denied access to the available models (403): {message}.")
         if code == 404:
-            return answer(f"Groq could not find the configured model '{model}' (404). Check GROQ_MODEL in Render.")
+            return answer(f"None of the discovered models could be used (404): {message}")
         if code == 429:
             return answer(f"Groq rate limit or quota reached (429): {message}")
         if code == 400:
-            return answer(f"Groq rejected the request (400): {message}. Check the configured model and request settings.")
+            return answer(f"Groq rejected the request (400): {message}. No compatible JSON-mode model was found.")
+        if status == "NO_CHAT_MODELS":
+            return answer("Groq did not return any active chat models for this API key.")
+        if status == "MODEL_DISCOVERY_ERROR":
+            return answer(f"FLX.AI couldn't retrieve your available Groq models: {message}")
         if code == 0:
-            return answer(f"FLX.AI couldn't reach Groq ({error.get('status', 'network error')}): {message}")
-        return answer(f"Groq request failed ({code}) using {model}: {message}")
+            return answer(f"FLX.AI couldn't reach Groq ({status or 'network error'}): {message}")
+        return answer(f"Groq request failed ({code}): {message}")
 
     choices = data.get("choices") or []
     if not choices:
         print(
-            f"[FLX.AI][Groq] response_parse_error model={model} "
-            "error=no_choices finish_reason=unknown",
+            "[FLX.AI][Groq] response_parse_error error=no_choices finish_reason=unknown",
             flush=True,
         )
         return answer("Groq returned no response choices. Please try again.")
@@ -518,7 +680,7 @@ def ask_groq(prompt: str):
 
     if not raw.strip():
         print(
-            f"[FLX.AI][Groq] response_parse_error model={model} "
+            f"[FLX.AI][Groq] response_parse_error "
             f"error=empty_content finish_reason={finish_reason}",
             flush=True,
         )
@@ -528,7 +690,7 @@ def ask_groq(prompt: str):
         return validate_model_result(parse_model_json(raw))
     except Exception as exc:
         print(
-            f"[FLX.AI][Groq] response_parse_error model={model} "
+            f"[FLX.AI][Groq] response_parse_error "
             f"error={type(exc).__name__}: {exc} finish_reason={finish_reason}",
             flush=True,
         )
@@ -549,7 +711,7 @@ def health():
         "service": "FLX.AI",
         "ai_enabled": bool(os.environ.get("GROQ_API_KEY", "").strip()),
         "provider": "groq",
-        "model": GROQ_MODEL,
+        "model": GROQ_MODEL_OVERRIDE or "automatic",
     })
 
 
