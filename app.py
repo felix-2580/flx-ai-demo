@@ -369,7 +369,9 @@ def groq_request(model: str, key: str, prompt: str):
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
+            "Accept": "application/json",
             "Authorization": f"Bearer {key}",
+            "User-Agent": "FLX.AI/1.0 (+https://github.com/felix-2580/flx-ai-demo)",
         },
         method="POST",
     )
