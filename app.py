@@ -328,33 +328,79 @@ def gemini_request(model: str, key: str, prompt: str):
 
 def request_model_with_retry(model: str, key: str, prompt: str):
     last_error = None
-    # Do not multiply Gemini usage with automatic retries.
-    for attempt in range(1):
+    max_attempts = 3
+
+    for attempt in range(max_attempts):
+        attempt_number = attempt + 1
+        started_at = time.monotonic()
+        print(
+            f"[FLX.AI][Gemini] request_start model={model} "
+            f"attempt={attempt_number}/{max_attempts}",
+            flush=True,
+        )
         try:
-            return gemini_request(model, key, prompt), None
+            data = gemini_request(model, key, prompt)
+            elapsed = time.monotonic() - started_at
+            print(
+                f"[FLX.AI][Gemini] request_success model={model} "
+                f"attempt={attempt_number} duration_seconds={elapsed:.2f}",
+                flush=True,
+            )
+            return data, None
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             try:
                 error_json = json.loads(body).get("error", {})
-                message = error_json.get("message", body[:500])
+                message = error_json.get("message", body[:1000])
                 status_name = error_json.get("status", "")
             except Exception:
-                message, status_name = body[:500], ""
+                message, status_name = body[:1000], ""
+
+            elapsed = time.monotonic() - started_at
             last_error = {"code": exc.code, "status": status_name, "message": message}
             retryable = exc.code in {500, 503, 504} or (
                 exc.code == 429 and status_name.lower() not in {"quota_exceeded"}
             )
-            if not retryable or attempt == 1:
+            print(
+                f"[FLX.AI][Gemini] request_error model={model} "
+                f"attempt={attempt_number}/{max_attempts} http_status={exc.code} "
+                f"api_status={status_name or 'not_provided'} "
+                f"duration_seconds={elapsed:.2f} message={message}",
+                flush=True,
+            )
+            if not retryable or attempt_number >= max_attempts:
                 break
-            time.sleep(0.8 * (2 ** attempt))
+
+            delay = 1.0 * (2 ** attempt)
+            print(
+                f"[FLX.AI][Gemini] retrying model={model} "
+                f"after_seconds={delay:.1f}",
+                flush=True,
+            )
+            time.sleep(delay)
         except (urllib.error.URLError, TimeoutError) as exc:
+            elapsed = time.monotonic() - started_at
             last_error = {"code": 0, "status": "NETWORK_ERROR", "message": str(exc)}
-            if attempt == 1:
+            print(
+                f"[FLX.AI][Gemini] network_error model={model} "
+                f"attempt={attempt_number}/{max_attempts} "
+                f"duration_seconds={elapsed:.2f} message={exc}",
+                flush=True,
+            )
+            if attempt_number >= max_attempts:
                 break
-            time.sleep(0.8 * (2 ** attempt))
+            time.sleep(1.0 * (2 ** attempt))
         except Exception as exc:
+            elapsed = time.monotonic() - started_at
             last_error = {"code": 0, "status": "RESPONSE_ERROR", "message": f"{type(exc).__name__}: {exc}"}
+            print(
+                f"[FLX.AI][Gemini] response_error model={model} "
+                f"attempt={attempt_number} duration_seconds={elapsed:.2f} "
+                f"message={type(exc).__name__}: {exc}",
+                flush=True,
+            )
             break
+
     return None, last_error
 
 
