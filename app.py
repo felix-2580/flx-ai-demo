@@ -23,9 +23,10 @@ _GROQ_MODELS_CACHE = {"expires": 0.0, "models": []}
 _GROQ_MODELS_LOCK = threading.Lock()
 
 SYSTEM_PROMPT = """You are FLX.AI, a helpful general-purpose AI assistant with an optional Windows companion.
-Return exactly one valid JSON object in one of these forms:
-{"type":"action","command":"canonical command"}
-{"type":"answer","message":"natural-language reply"}
+Return exactly one JSON object with all three keys: "type", "command", and "message".
+For an action, use {"type":"action","command":"canonical command","message":null}.
+For an answer, use {"type":"answer","command":null,"message":"natural-language reply"}.
+Never omit a key. Use null for the field that does not apply.
 
 Use type=action ONLY when the user clearly asks FLX.AI to perform a supported Windows action.
 Use type=answer for greetings, questions, explanations, opinions, brainstorming, coding help, writing help, study support, and normal conversation.
@@ -398,11 +399,12 @@ def discover_groq_models(key: str, force_refresh: bool = False):
         # Prefer economical general-purpose chat models where available.
         # The API's model-list response does not expose prices or free-tier
         # eligibility; account access and rate limits are enforced by Groq.
+        # Strict Structured Outputs are preferred because Groq constrains
+        # generation to this application's schema for these exact model IDs.
         priority = {
             "openai/gpt-oss-20b": 0,
             "openai/gpt-oss-120b": 1,
             "qwen/qwen3.8-27b": 2,
-            "qwen/qwen3.6-27b": 3,
         }
         model_ids = sorted(set(model_ids), key=lambda item: (priority.get(item, 100), item.lower()))
 
@@ -415,15 +417,45 @@ def discover_groq_models(key: str, force_refresh: bool = False):
         return list(model_ids)
 
 
+STRICT_JSON_MODELS = {
+    "openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+    "qwen/qwen3.8-27b",
+}
+
+FLX_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "type": {"type": "string", "enum": ["action", "answer"]},
+        "command": {"type": ["string", "null"]},
+        "message": {"type": ["string", "null"]},
+    },
+    "required": ["type", "command", "message"],
+    "additionalProperties": False,
+}
+
+
 def groq_request(model: str, key: str, prompt: str):
     url = "https://api.groq.com/openai/v1/chat/completions"
+    response_format = (
+        {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "flx_ai_response",
+                "strict": True,
+                "schema": FLX_RESPONSE_SCHEMA,
+            },
+        }
+        if model in STRICT_JSON_MODELS
+        else {"type": "json_object"}
+    )
     payload = {
         "model": model,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ],
-        "response_format": {"type": "json_object"},
+        "response_format": response_format,
         "temperature": 0.2,
         "max_completion_tokens": 2048,
         "stream": False,
@@ -541,6 +573,8 @@ def model_error_allows_fallback(error):
         return any(term in message for term in (
             "response_format", "json mode", "json_object", "structured output",
             "does not support", "not supported for this model",
+            "failed to validate json", "failed_generation",
+            "generated json", "invalid json",
         ))
     return False
 
@@ -621,14 +655,14 @@ def validate_model_result(obj):
 
     response_type = obj.get("type")
     if response_type == "action":
-        command = str(obj.get("command", "")).strip()
+        command = str(obj.get("command") or "").strip()
         lowered = command.lower()
         if command and lowered.startswith(ALLOWED_ACTION_PREFIXES):
             return action(command)
         return answer("I couldn't map that request to a supported Windows action. Try rephrasing it or ask me to explain what I can do.")
 
     if response_type == "answer":
-        message = str(obj.get("message", "")).strip()
+        message = str(obj.get("message") or "").strip()
         return answer(message or "I couldn't form a response. Please try again.")
 
     return answer("I received an unexpected response format. Please try again.")
