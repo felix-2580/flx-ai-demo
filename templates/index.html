@@ -541,6 +541,40 @@
             cursor: pointer;
         }
 
+        .voice-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .voice-controls button {
+            border: 1px solid #24456f;
+            border-radius: 18px;
+            background: #091a35;
+            color: #a9c7e8;
+            padding: 6px 12px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .voice-controls button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .orb.speaking {
+            filter: hue-rotate(145deg);
+            box-shadow: 0 0 28px #20d8ff, 0 0 75px #087affaa, 0 0 115px #087aff55;
+            animation: flxSpeakingPulse 1.1s ease-in-out infinite alternate;
+        }
+
+        @keyframes flxSpeakingPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.13); }
+        }
+
         .footer {
             text-align: center;
             color: #4d628e;
@@ -1003,6 +1037,11 @@
                         <button data-command="search Python tutorials">Google search</button>
                     </div>
 
+                    <div class="voice-controls" aria-label="Speech playback controls">
+                        <button type="button" id="replaySpeech" disabled>▶ Play response</button>
+                        <button type="button" id="stopSpeech" disabled>■ Stop</button>
+                    </div>
+
                     <div class="footer">
                         FLX.AI <span>•</span> LOCAL-FIRST EXECUTION <span>•</span> AI WHEN ENABLED
                     </div>
@@ -1035,6 +1074,98 @@
         let audioContext = null;
         let analyser = null;
         let frame = null;
+
+        let lastSpokenText = '';
+        let currentAudio = null;
+        let speechObjectUrl = null;
+        let speechAbortController = null;
+        const replaySpeechButton = document.getElementById('replaySpeech');
+        const stopSpeechButton = document.getElementById('stopSpeech');
+
+        function stopSpeech() {
+            if (speechAbortController) {
+                speechAbortController.abort();
+                speechAbortController = null;
+            }
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.src = '';
+                currentAudio = null;
+            }
+            if (speechObjectUrl) {
+                URL.revokeObjectURL(speechObjectUrl);
+                speechObjectUrl = null;
+            }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            orb.classList.remove('speaking');
+            stopSpeechButton.disabled = true;
+        }
+
+        function useBrowserSpeech(text) {
+            if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+                orb.classList.remove('speaking');
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-IN';
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            const voices = window.speechSynthesis.getVoices();
+            const voice = voices.find(item => item.lang.toLowerCase().startsWith('en-in'))
+                || voices.find(item => item.lang.toLowerCase().startsWith('en-gb'))
+                || voices.find(item => item.lang.toLowerCase().startsWith('en'));
+            if (voice) utterance.voice = voice;
+            utterance.onend = () => {
+                orb.classList.remove('speaking');
+                stopSpeechButton.disabled = true;
+            };
+            utterance.onerror = () => {
+                orb.classList.remove('speaking');
+                stopSpeechButton.disabled = true;
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        async function speakText(value) {
+            const text = String(value || '').trim().slice(0, 3000);
+            if (!text) return;
+            stopSpeech();
+            lastSpokenText = text;
+            replaySpeechButton.disabled = false;
+            stopSpeechButton.disabled = false;
+            orb.classList.add('speaking');
+            speechAbortController = new AbortController();
+            try {
+                const response = await fetch('/api/speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text }),
+                    signal: speechAbortController.signal
+                });
+                if (!response.ok) throw new Error('TTS service unavailable');
+                const audioBlob = await response.blob();
+                if (!audioBlob.size) throw new Error('Empty speech audio');
+                speechObjectUrl = URL.createObjectURL(audioBlob);
+                currentAudio = new Audio(speechObjectUrl);
+                currentAudio.onended = () => stopSpeech();
+                await currentAudio.play();
+                speechAbortController = null;
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                speechAbortController = null;
+                if (speechObjectUrl) {
+                    URL.revokeObjectURL(speechObjectUrl);
+                    speechObjectUrl = null;
+                }
+                currentAudio = null;
+                useBrowserSpeech(text);
+            }
+        }
+
+        replaySpeechButton.addEventListener('click', () => {
+            if (lastSpokenText) speakText(lastSpokenText);
+        });
+        stopSpeechButton.addEventListener('click', stopSpeech);
 
         let statusResetTimer = null;
         let statusVersion = 0;
@@ -1225,6 +1356,7 @@
                 pendingWeatherCity = false;
             }
 
+            stopSpeech();
             startIntroTransition();
             addMessage('user', command);
             input.value = '';
@@ -1273,7 +1405,9 @@
                         }
                     } catch (error) {
                         pending.remove();
-                        addMessage('ai', 'Windows Companion is not connected. Start FLXAI-Companion.exe on this same Windows PC and keep it running.');
+                        const companionError = 'Windows Companion is not connected. Start FLXAI-Companion.exe on this same Windows PC and keep it running.';
+                        addMessage('ai', companionError);
+                        speakText(companionError);
                         setStatus('Companion not connected', 'idle', true);
                         return;
                     }
@@ -1281,7 +1415,9 @@
 
                 pending.remove();
                 const success = data && data.success === true && response.ok !== false;
-                addMessage('ai', data && data.message ? data.message : 'I couldn’t get a response. Please try again.');
+                const finalReply = data && data.message ? data.message : 'I couldn’t get a response. Please try again.';
+                addMessage('ai', finalReply);
+                speakText(finalReply);
 
                 if (data && Object.prototype.hasOwnProperty.call(data, 'success')) {
                     if (success) setStatus('Command successful', 'success', true);
@@ -1291,7 +1427,9 @@
                 }
             } catch (error) {
                 pending.remove();
-                addMessage('ai', 'I couldn’t reach the FLX.AI service. Check your internet connection and try again.');
+                const connectionError = 'I couldn’t reach the FLX.AI service. Check your internet connection and try again.';
+                addMessage('ai', connectionError);
+                speakText(connectionError);
                 setStatus('Connection error', 'idle', true);
             } finally {
                 busy = false;
