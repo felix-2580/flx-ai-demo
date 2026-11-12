@@ -3,15 +3,17 @@ from __future__ import annotations
 from datetime import datetime
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+import asyncio
 import json
 import os
 import re
 import time
 import threading
+from io import BytesIO
 import urllib.error
 import urllib.request
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_file
 
 app = Flask(__name__)
 
@@ -961,6 +963,46 @@ def ask_groq(prompt: str):
         if finish_reason == "length":
             return answer("Groq reached its response-length limit. Please try asking for a shorter answer.")
         return answer(f"I couldn't understand the Groq response ({type(exc).__name__}). Please try again.")
+
+
+@app.post("/api/speech")
+def api_speech():
+    """Generate speech for one FLX.AI response using Microsoft Edge TTS."""
+    payload = request.get_json(silent=True) or {}
+    text = str(payload.get("text", "")).strip()
+
+    if not text:
+        return jsonify({"error": "No text was supplied for speech."}), 400
+    if len(text) > 3000:
+        return jsonify({"error": "Speech text must be 3,000 characters or fewer."}), 400
+
+    voice = os.environ.get("FLX_TTS_VOICE", "en-IN-PrabhatNeural").strip()
+    if not voice:
+        voice = "en-IN-PrabhatNeural"
+
+    async def generate_audio():
+        import edge_tts
+
+        communicator = edge_tts.Communicate(text, voice)
+        audio_chunks = []
+        async for chunk in communicator.stream():
+            if chunk.get("type") == "audio":
+                audio_chunks.append(chunk.get("data", b""))
+        return b"".join(audio_chunks)
+
+    try:
+        audio_data = asyncio.run(generate_audio())
+        if not audio_data:
+            return jsonify({"error": "The speech service returned empty audio."}), 502
+        return send_file(
+            BytesIO(audio_data),
+            mimetype="audio/mpeg",
+            as_attachment=False,
+            download_name="flx-ai-response.mp3",
+        )
+    except Exception as exc:
+        print(f"[FLX.AI][TTS] speech_generation_error={type(exc).__name__}: {exc}", flush=True)
+        return jsonify({"error": "Speech generation is temporarily unavailable."}), 502
 
 
 @app.get("/")
