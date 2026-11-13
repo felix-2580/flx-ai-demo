@@ -9,6 +9,9 @@ import os
 import re
 import time
 import threading
+import sqlite3
+import tempfile
+import uuid
 from io import BytesIO
 import urllib.error
 import urllib.request
@@ -23,6 +26,120 @@ GROQ_MODEL_OVERRIDE = os.environ.get("GROQ_MODEL", "").strip()
 GROQ_MODELS_CACHE_SECONDS = 600
 _GROQ_MODELS_CACHE = {"expires": 0.0, "models": []}
 _GROQ_MODELS_LOCK = threading.Lock()
+
+# Browser-scoped conversation memory. The opaque browser ID is stored in a
+# first-party HttpOnly cookie; recent messages are kept briefly in SQLite.
+CONVERSATION_DB_PATH = os.environ.get(
+    "FLX_CONVERSATION_DB",
+    os.path.join(tempfile.gettempdir(), "flx_ai_conversations.sqlite3"),
+)
+CONVERSATION_TTL_SECONDS = 24 * 60 * 60
+CONVERSATION_MAX_MESSAGES = 12
+CONVERSATION_MAX_MESSAGE_CHARS = 5000
+
+
+def get_conversation_id() -> str:
+    """Return the browser's conversation ID, or create a new opaque ID."""
+    supplied = request.cookies.get("flx_conversation_id", "")
+    try:
+        return str(uuid.UUID(supplied))
+    except (ValueError, TypeError, AttributeError):
+        return str(uuid.uuid4())
+
+
+def get_conversation_history(conversation_id: str):
+    """Load the most recent conversation messages for this browser."""
+    cutoff = time.time() - CONVERSATION_TTL_SECONDS
+    with sqlite3.connect(CONVERSATION_DB_PATH, timeout=10) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS conversation_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at REAL NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_conversation_messages "
+            "ON conversation_messages(conversation_id, id)"
+        )
+        connection.execute(
+            "DELETE FROM conversation_messages WHERE created_at < ?",
+            (cutoff,),
+        )
+        rows = connection.execute(
+            """
+            SELECT role, content
+            FROM conversation_messages
+            WHERE conversation_id = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (conversation_id, CONVERSATION_MAX_MESSAGES),
+        ).fetchall()
+
+    rows.reverse()
+    return [{"role": role, "content": content} for role, content in rows]
+
+
+def save_conversation_turn(conversation_id: str, user_message: str, assistant_message: str):
+    """Store one completed turn and keep only a short rolling history."""
+    now = time.time()
+    user_message = str(user_message)[:CONVERSATION_MAX_MESSAGE_CHARS]
+    assistant_message = str(assistant_message)[:CONVERSATION_MAX_MESSAGE_CHARS]
+
+    with sqlite3.connect(CONVERSATION_DB_PATH, timeout=10) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS conversation_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at REAL NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_conversation_messages "
+            "ON conversation_messages(conversation_id, id)"
+        )
+        connection.execute(
+            "DELETE FROM conversation_messages WHERE created_at < ?",
+            (now - CONVERSATION_TTL_SECONDS,),
+        )
+        connection.executemany(
+            """
+            INSERT INTO conversation_messages
+                (conversation_id, role, content, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            [
+                (conversation_id, "user", user_message, now),
+                (conversation_id, "assistant", assistant_message, now),
+            ],
+        )
+        connection.execute(
+            """
+            DELETE FROM conversation_messages
+            WHERE conversation_id = ?
+              AND id NOT IN (
+                  SELECT id FROM conversation_messages
+                  WHERE conversation_id = ?
+                  ORDER BY id DESC
+                  LIMIT ?
+              )
+            """,
+            (conversation_id, conversation_id, CONVERSATION_MAX_MESSAGES),
+        )
+
+
+def serialize_conversation_response(result: dict) -> str:
+    """Keep the assistant's structured decision available to later turns."""
+    return json.dumps(result, ensure_ascii=False)
 
 SYSTEM_PROMPT = """You are FLX.AI, a helpful general-purpose AI assistant with an optional Windows companion.
 Return exactly one JSON object with all three keys: "type", "command", and "message".
@@ -264,6 +381,7 @@ Your responses should reflect the actual capabilities of the
 FLX.AI application rather than generic capabilities of an AI model.
 
 Do not treat ordinary questions as Windows commands.
+Use the supplied previous conversation messages to understand references and follow-up requests. Treat the latest user message as the current request, and do not invent details that are absent from the conversation.
 
 Supported Windows actions (use concise canonical commands):
 - Open known apps, websites, and folders: open calculator; open file explorer; open chrome; open downloads; open youtube; open settings; open task manager; open guest mode in chrome; open incognito in chrome.
@@ -667,7 +785,7 @@ FLX_RESPONSE_SCHEMA = {
 }
 
 
-def groq_request(model: str, key: str, prompt: str):
+def groq_request(model: str, key: str, messages: list):
     url = "https://api.groq.com/openai/v1/chat/completions"
     response_format = (
         {
@@ -683,10 +801,7 @@ def groq_request(model: str, key: str, prompt: str):
     )
     payload = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": messages,
         "response_format": response_format,
         "temperature": 0.2,
         "max_completion_tokens": 2048,
@@ -707,7 +822,7 @@ def groq_request(model: str, key: str, prompt: str):
         return json.loads(response.read().decode("utf-8"))
 
 
-def request_groq_with_retry(model: str, key: str, prompt: str):
+def request_groq_with_retry(model: str, key: str, messages: list):
     last_error = None
     max_attempts = 3
 
@@ -720,7 +835,7 @@ def request_groq_with_retry(model: str, key: str, prompt: str):
             flush=True,
         )
         try:
-            data = groq_request(model, key, prompt)
+            data = groq_request(model, key, messages)
             elapsed = time.monotonic() - started_at
             print(
                 f"[FLX.AI][Groq] request_success model={model} "
@@ -811,7 +926,7 @@ def model_error_allows_fallback(error):
     return False
 
 
-def request_groq_with_fallback(key: str, prompt: str):
+def request_groq_with_fallback(key: str, messages: list):
     """Try an optional configured model first, then discovered compatible candidates."""
     try:
         discovered = discover_groq_models(key)
@@ -853,7 +968,7 @@ def request_groq_with_fallback(key: str, prompt: str):
             continue
         attempted.add(model)
 
-        data, error = request_groq_with_retry(model, key, prompt)
+        data, error = request_groq_with_retry(model, key, messages)
         if not error:
             return data, None
 
@@ -900,12 +1015,17 @@ def validate_model_result(obj):
     return answer("I received an unexpected response format. Please try again.")
 
 
-def ask_groq(prompt: str):
+def ask_groq(prompt: str, history=None):
     key = os.environ.get("GROQ_API_KEY", "").strip()
     if not key:
         return answer("Groq is not configured. Add GROQ_API_KEY in the Render environment variables.")
 
-    data, error = request_groq_with_fallback(key, prompt)
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": prompt})
+
+    data, error = request_groq_with_fallback(key, messages)
 
     if error:
         code = error.get("code")
@@ -1026,27 +1146,55 @@ def api_command():
     payload = request.get_json(silent=True) or {}
     prompt = str(payload.get("command", "")).strip()
     mode = str(payload.get("mode", "unified")).strip().lower()
+    conversation_id = get_conversation_id()
+
+    def respond(result, status=200, record=True):
+        if record and prompt:
+            save_conversation_turn(
+                conversation_id,
+                prompt,
+                serialize_conversation_response(result),
+            )
+
+        response = jsonify(result)
+        forwarded_proto = request.headers.get("X-Forwarded-Proto", "").lower()
+        response.set_cookie(
+            "flx_conversation_id",
+            conversation_id,
+            max_age=CONVERSATION_TTL_SECONDS,
+            httponly=True,
+            secure=request.is_secure or forwarded_proto == "https",
+            samesite="Lax",
+            path="/",
+        )
+        return response if status == 200 else (response, status)
 
     if not prompt:
-        return jsonify(answer("Enter a message or command.")), 400
+        return respond(answer("Enter a message or command."), 400, record=False)
     if len(prompt) > 2000:
-        return jsonify(answer("Please keep your message under 2,000 characters.")), 400
+        return respond(answer("Please keep your message under 2,000 characters."), 400, record=False)
+
+    history = get_conversation_history(conversation_id)
 
     live_result = live_information_request(prompt)
     if live_result is not None:
-        return jsonify(live_result)
+        return respond(live_result)
 
     direct = direct_action(prompt)
     if direct is not None:
-        return jsonify(direct)
+        return respond(direct)
 
     if mode == "local":
-        interpreted = ask_groq(prompt)
+        interpreted = ask_groq(prompt, history=history)
         if interpreted.get("type") == "action":
-            return jsonify(interpreted)
-        return jsonify(answer("I couldn't map that to a supported Windows action. " + interpreted.get("message", "Try rephrasing the command.")))
+            return respond(interpreted)
+        local_reply = answer(
+            "I couldn't map that to a supported Windows action. "
+            + interpreted.get("message", "Try rephrasing the command.")
+        )
+        return respond(local_reply)
 
-    return jsonify(ask_groq(prompt))
+    return respond(ask_groq(prompt, history=history))
 
 
 if __name__ == "__main__":
