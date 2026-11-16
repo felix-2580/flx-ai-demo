@@ -404,7 +404,7 @@ Interpret natural phrasing into the closest supported canonical command. Example
 "switch off wireless" -> turn wifi off
 "enable bluetooth" -> turn bluetooth on
 "launch my calculator" -> open calculator
-"look up <topic>" -> search <topic>
+"search <query>" -> open a browser search through the Windows Companion; "look up current or recent information about <topic>" -> use web research
 
 Never output shell commands, PowerShell, Python, scripts, arbitrary code, file-deletion commands, or commands outside the supported actions.
 Never claim an action was executed. The local Windows Companion performs the action and reports its result.
@@ -451,8 +451,6 @@ def direct_action(user_text: str):
 
     if text.startswith("search "):
         return action(text)
-    if text.startswith("look up "):
-        return action("search " + text[8:].strip())
     if text in {"can you open", "could you open", "open something", "launch something"}:
         return answer("Sure — what would you like me to open?")
     if text.startswith("open "):
