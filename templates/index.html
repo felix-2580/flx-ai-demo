@@ -452,6 +452,48 @@
             padding: 6px 10px;
         }
 
+        .sources-toggle {
+            display: block;
+            margin-top: 10px;
+            padding: 5px 9px;
+            border: 1px solid #24476e;
+            border-radius: 8px;
+            background: #0a1b35;
+            color: #8edfff;
+            font: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .sources-list {
+            display: grid;
+            gap: 7px;
+            margin-top: 8px;
+        }
+
+        .source-item {
+            display: block;
+            padding: 8px 10px;
+            border: 1px solid #1d3558;
+            border-radius: 8px;
+            background: #071329;
+            color: #dcecff;
+            text-decoration: none;
+            overflow-wrap: anywhere;
+        }
+
+        .source-item:hover {
+            border-color: #36bce9;
+            background: #0b1d39;
+        }
+
+        .source-domain {
+            display: block;
+            margin-top: 3px;
+            color: #7898c3;
+            font-size: 10px;
+        }
+
         /* COMMAND BAR */
 
         .bottom {
@@ -1242,7 +1284,7 @@
 
         /* EXECUTION LOG */
 
-        function addMessage(type, text, url) {
+        function addMessage(type, text, url, sources = []) {
             const row = document.createElement('div');
             row.className = 'message ' + type;
 
@@ -1278,6 +1320,56 @@
                         bubble.appendChild(a);
                     }
                 } catch (_) {}
+            }
+
+            if (type === 'ai' && Array.isArray(sources) && sources.length) {
+                const safeSources = sources.filter(source => {
+                    try {
+                        const parsed = new URL(String(source.url || ''));
+                        return parsed.protocol === 'https:' && parsed.hostname;
+                    } catch (_) {
+                        return false;
+                    }
+                }).slice(0, 5);
+
+                if (safeSources.length) {
+                    const toggle = document.createElement('button');
+                    toggle.className = 'sources-toggle';
+                    toggle.type = 'button';
+                    toggle.textContent = 'Sources (' + safeSources.length + ')';
+                    toggle.setAttribute('aria-expanded', 'false');
+
+                    const list = document.createElement('div');
+                    list.className = 'sources-list';
+                    list.hidden = true;
+
+                    safeSources.forEach(source => {
+                        const link = document.createElement('a');
+                        const parsed = new URL(source.url);
+                        link.className = 'source-item';
+                        link.href = parsed.href;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = String(source.title || parsed.hostname);
+
+                        const domain = document.createElement('span');
+                        domain.className = 'source-domain';
+                        domain.textContent = parsed.hostname;
+                        link.appendChild(domain);
+                        list.appendChild(link);
+                    });
+
+                    toggle.addEventListener('click', () => {
+                        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+                        toggle.setAttribute('aria-expanded', String(!expanded));
+                        toggle.textContent = (expanded ? 'Sources (' : 'Hide sources (')
+                            + safeSources.length + ')';
+                        list.hidden = expanded;
+                    });
+
+                    bubble.appendChild(toggle);
+                    bubble.appendChild(list);
+                }
             }
 
             row.appendChild(bubble);
@@ -1416,7 +1508,7 @@
                 pending.remove();
                 const success = data && data.success === true && response.ok !== false;
                 const finalReply = data && data.message ? data.message : 'I couldn’t get a response. Please try again.';
-                addMessage('ai', finalReply);
+                addMessage('ai', finalReply, null, data && Array.isArray(data.sources) ? data.sources : []);
                 speakText(finalReply);
 
                 if (data && Object.prototype.hasOwnProperty.call(data, 'success')) {
