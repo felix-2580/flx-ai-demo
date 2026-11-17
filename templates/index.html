@@ -1196,9 +1196,24 @@
                     const KokoroTTS = module.KokoroTTS;
                     if (!KokoroTTS) throw new Error('Kokoro TTS module could not be loaded');
 
-                    // Q8 WASM keeps memory use more manageable on ordinary laptops.
+                    const modelId = 'onnx-community/Kokoro-82M-v1.0-ONNX';
+
+                    // Prefer local GPU acceleration where Chrome exposes WebGPU.
+                    if (navigator.gpu) {
+                        try {
+                            kokoroTTS = await KokoroTTS.from_pretrained(
+                                modelId,
+                                { dtype: 'fp32', device: 'webgpu' }
+                            );
+                            return kokoroTTS;
+                        } catch (gpuError) {
+                            console.warn('Kokoro WebGPU unavailable; switching to WASM:', gpuError);
+                        }
+                    }
+
+                    // CPU/WASM fallback keeps FLX.AI usable without a supported GPU.
                     kokoroTTS = await KokoroTTS.from_pretrained(
-                        'onnx-community/Kokoro-82M-v1.0-ONNX',
+                        modelId,
                         { dtype: 'q8', device: 'wasm' }
                     );
                     return kokoroTTS;
@@ -1208,41 +1223,6 @@
                 });
             }
             return kokoroLoadPromise;
-        }
-
-        function rawAudioToWavBlob(rawAudio) {
-            const samples = rawAudio.audio;
-            const sampleRate = rawAudio.sampling_rate || 24000;
-            if (!samples || !samples.length) throw new Error('Kokoro returned empty audio');
-
-            const buffer = new ArrayBuffer(44 + samples.length * 2);
-            const view = new DataView(buffer);
-            const writeString = (offset, value) => {
-                for (let i = 0; i < value.length; i++) {
-                    view.setUint8(offset + i, value.charCodeAt(i));
-                }
-            };
-
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + samples.length * 2, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, 1, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(36, 'data');
-            view.setUint32(40, samples.length * 2, true);
-
-            let offset = 44;
-            for (let i = 0; i < samples.length; i++, offset += 2) {
-                const sample = Math.max(-1, Math.min(1, samples[i]));
-                view.setInt16(offset, sample < 0 ? sample * 32768 : sample * 32767, true);
-            }
-            return new Blob([buffer], { type: 'audio/wav' });
         }
 
         function useBrowserSpeech(text, runId) {
@@ -1281,7 +1261,7 @@
                 const generated = await tts.generate(text, { voice: 'am_michael' });
                 if (runId !== speechRunId) return;
 
-                speechObjectUrl = URL.createObjectURL(rawAudioToWavBlob(generated));
+                speechObjectUrl = URL.createObjectURL(generated.toBlob());
                 currentAudio = new Audio(speechObjectUrl);
                 currentAudio.onended = () => finishSpeech(runId);
                 currentAudio.onerror = () => finishSpeech(runId);
