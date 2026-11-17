@@ -484,13 +484,22 @@ def direct_action(user_text: str):
     if text in {"mute", "mute audio", "mute volume", "unmute", "unmute audio", "unmute volume"}:
         return action("mute" if text.startswith("mute") and not text.startswith("unmute") else "unmute")
 
-    # Brightness.
+    # Brightness. Preserve an explicit step amount when supplied.
     match = re.fullmatch(r"(?:set|change) brightness to (\d{1,3})(?:\s*(?:%|percent))?", text)
     if match:
         return action(f"set brightness to {match.group(1)}")
-    if text in {"increase brightness", "brightness up", "brighter", "turn brightness up"}:
+    brightness_step = re.fullmatch(
+        r"(increase|raise|boost|decrease|lower|reduce)\s+(?:the\s+)?brightness"
+        r"(?:\s+by\s+(\d{1,3})(?:\s*(?:%|percent))?)?",
+        text,
+    )
+    if brightness_step:
+        direction, amount = brightness_step.groups()
+        command = "decrease brightness" if direction in {"decrease", "lower", "reduce"} else "increase brightness"
+        return action(command + (f" by {amount}" if amount else ""))
+    if text in {"brightness up", "brighter", "turn brightness up"}:
         return action("increase brightness")
-    if text in {"decrease brightness", "brightness down", "dimmer", "turn brightness down"}:
+    if text in {"brightness down", "dimmer", "turn brightness down"}:
         return action("decrease brightness")
 
     # Wi-Fi radio aliases. These route to the radio API in companion.py.
@@ -548,6 +557,15 @@ def direct_action(user_text: str):
         "previous track", "help", "commands",
     }:
         return action(text)
+    # Exact commands exposed in the Default Commands sidebar. These must
+    # always go straight to the Windows Companion, never through Groq.
+    default_commands = {
+        "shut down computer", "restart computer",
+        "show system information", "copy text",
+    }
+    if text in default_commands:
+        return action(text)
+
     return None
 
 
