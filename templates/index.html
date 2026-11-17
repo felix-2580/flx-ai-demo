@@ -471,6 +471,11 @@
             margin-top: 8px;
         }
 
+        /* Author CSS display:grid must not override the native hidden attribute. */
+        .sources-list[hidden] {
+            display: none !important;
+        }
+
         .source-item {
             display: block;
             padding: 8px 10px;
@@ -606,15 +611,26 @@
             cursor: not-allowed;
         }
 
+        .orb.thinking {
+            filter: hue-rotate(25deg);
+            animation: flxThinkingPulse 1.25s ease-in-out infinite;
+        }
+
         .orb.speaking {
             filter: hue-rotate(145deg);
             box-shadow: 0 0 28px #20d8ff, 0 0 75px #087affaa, 0 0 115px #087aff55;
-            animation: flxSpeakingPulse 1.1s ease-in-out infinite alternate;
+            animation: flxSpeakingPulse 1.05s ease-in-out infinite alternate;
         }
 
+        /* Animate glow, not transform: transform is also used by the audio meter. */
         @keyframes flxSpeakingPulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.13); }
+            from { filter: hue-rotate(125deg) brightness(1); }
+            to { filter: hue-rotate(155deg) brightness(1.3); }
+        }
+
+        @keyframes flxThinkingPulse {
+            0%, 100% { opacity: .82; filter: hue-rotate(10deg) brightness(1); }
+            50% { opacity: 1; filter: hue-rotate(35deg) brightness(1.35); }
         }
 
         .footer {
@@ -623,6 +639,15 @@
             font-size: 9px;
             margin-top: 15px;
             letter-spacing: .07em;
+            line-height: 1.6;
+        }
+
+        .usage-disclaimer {
+            display: block;
+            margin-top: 5px;
+            color: #64779e;
+            font-size: 9px;
+            letter-spacing: 0;
         }
 
         /* REACTOR STATUS COLOURS */
@@ -663,7 +688,16 @@
             width: 25px; height: 25px; border-width: 1px;
             box-shadow: 0 0 10px #087aff99, inset 0 0 8px #b4ffff66;
             transform: scale(calc(1 + var(--level, 0) * .22));
-            transition: transform .12s ease, filter .2s, box-shadow .2s;
+            transition: width .22s ease, height .22s ease, transform .12s ease,
+                        filter .2s, box-shadow .2s;
+        }
+
+        /* The reactor visibly expands while the microphone is listening. */
+        #mic.listening .orb {
+            width: 39px;
+            height: 39px;
+            box-shadow: 0 0 18px #9d3bff, 0 0 34px #7e20ff99,
+                        inset 0 0 10px #d7b8ff88;
         }
         #mic .orb:before, #mic .orb:after { inset: -15%; }
         #mic .orb .core { width: 48%; height: 48%; }
@@ -1086,6 +1120,7 @@
 
                     <div class="footer">
                         FLX.AI <span>•</span> LOCAL-FIRST EXECUTION <span>•</span> AI WHEN ENABLED
+                        <span class="usage-disclaimer">FLX.AI uses free-tier APIs with limited usage quotas. Please use it accordingly.</span>
                     </div>
 
                 </div>
@@ -1120,15 +1155,25 @@
         let lastSpokenText = '';
         let currentAudio = null;
         let speechObjectUrl = null;
-        let speechAbortController = null;
+        let kokoroTTS = null;
+        let kokoroLoadPromise = null;
+        let speechRunId = 0;
         const replaySpeechButton = document.getElementById('replaySpeech');
         const stopSpeechButton = document.getElementById('stopSpeech');
 
-        function stopSpeech() {
-            if (speechAbortController) {
-                speechAbortController.abort();
-                speechAbortController = null;
+        function finishSpeech(runId) {
+            if (runId !== speechRunId) return;
+            if (speechObjectUrl) {
+                URL.revokeObjectURL(speechObjectUrl);
+                speechObjectUrl = null;
             }
+            currentAudio = null;
+            orb.classList.remove('speaking');
+            stopSpeechButton.disabled = true;
+        }
+
+        function stopSpeech() {
+            speechRunId++;
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio.src = '';
@@ -1143,64 +1188,113 @@
             stopSpeechButton.disabled = true;
         }
 
-        function useBrowserSpeech(text) {
+        async function loadKokoro() {
+            if (kokoroTTS) return kokoroTTS;
+            if (!kokoroLoadPromise) {
+                kokoroLoadPromise = (async () => {
+                    const module = await import('https://esm.sh/kokoro-js@1.2.1?bundle');
+                    const KokoroTTS = module.KokoroTTS;
+                    if (!KokoroTTS) throw new Error('Kokoro TTS module could not be loaded');
+
+                    // Q8 WASM keeps memory use more manageable on ordinary laptops.
+                    kokoroTTS = await KokoroTTS.from_pretrained(
+                        'onnx-community/Kokoro-82M-v1.0-ONNX',
+                        { dtype: 'q8', device: 'wasm' }
+                    );
+                    return kokoroTTS;
+                })().catch(error => {
+                    kokoroLoadPromise = null;
+                    throw error;
+                });
+            }
+            return kokoroLoadPromise;
+        }
+
+        function rawAudioToWavBlob(rawAudio) {
+            const samples = rawAudio.audio;
+            const sampleRate = rawAudio.sampling_rate || 24000;
+            if (!samples || !samples.length) throw new Error('Kokoro returned empty audio');
+
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+            const writeString = (offset, value) => {
+                for (let i = 0; i < value.length; i++) {
+                    view.setUint8(offset + i, value.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+
+            let offset = 44;
+            for (let i = 0; i < samples.length; i++, offset += 2) {
+                const sample = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(offset, sample < 0 ? sample * 32768 : sample * 32767, true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function useBrowserSpeech(text, runId) {
             if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
-                orb.classList.remove('speaking');
+                finishSpeech(runId);
                 return;
             }
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-IN';
+            utterance.lang = 'en-US';
             utterance.rate = 1;
             utterance.pitch = 1;
             const voices = window.speechSynthesis.getVoices();
-            const voice = voices.find(item => item.lang.toLowerCase().startsWith('en-in'))
-                || voices.find(item => item.lang.toLowerCase().startsWith('en-gb'))
+            const voice = voices.find(item => item.lang.toLowerCase().startsWith('en-us'))
+                || voices.find(item => item.lang.toLowerCase().startsWith('en-in'))
                 || voices.find(item => item.lang.toLowerCase().startsWith('en'));
             if (voice) utterance.voice = voice;
-            utterance.onend = () => {
-                orb.classList.remove('speaking');
-                stopSpeechButton.disabled = true;
-            };
-            utterance.onerror = () => {
-                orb.classList.remove('speaking');
-                stopSpeechButton.disabled = true;
-            };
+            utterance.onend = () => finishSpeech(runId);
+            utterance.onerror = () => finishSpeech(runId);
             window.speechSynthesis.speak(utterance);
         }
 
         async function speakText(value) {
             const text = String(value || '').trim().slice(0, 3000);
             if (!text) return;
+
             stopSpeech();
+            const runId = speechRunId;
             lastSpokenText = text;
             replaySpeechButton.disabled = false;
             stopSpeechButton.disabled = false;
             orb.classList.add('speaking');
-            speechAbortController = new AbortController();
+
             try {
-                const response = await fetch('/api/speech', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text }),
-                    signal: speechAbortController.signal
-                });
-                if (!response.ok) throw new Error('TTS service unavailable');
-                const audioBlob = await response.blob();
-                if (!audioBlob.size) throw new Error('Empty speech audio');
-                speechObjectUrl = URL.createObjectURL(audioBlob);
+                const tts = await loadKokoro();
+                if (runId !== speechRunId) return;
+                const generated = await tts.generate(text, { voice: 'am_michael' });
+                if (runId !== speechRunId) return;
+
+                speechObjectUrl = URL.createObjectURL(rawAudioToWavBlob(generated));
                 currentAudio = new Audio(speechObjectUrl);
-                currentAudio.onended = () => stopSpeech();
+                currentAudio.onended = () => finishSpeech(runId);
+                currentAudio.onerror = () => finishSpeech(runId);
                 await currentAudio.play();
-                speechAbortController = null;
             } catch (error) {
-                if (error.name === 'AbortError') return;
-                speechAbortController = null;
+                if (runId !== speechRunId) return;
+                console.warn('Kokoro TTS unavailable; using browser speech:', error);
                 if (speechObjectUrl) {
                     URL.revokeObjectURL(speechObjectUrl);
                     speechObjectUrl = null;
                 }
                 currentAudio = null;
-                useBrowserSpeech(text);
+                useBrowserSpeech(text, runId);
             }
         }
 
@@ -1246,13 +1340,11 @@
             orb.classList.remove(
                 'listening',
                 'success',
-                'error'
+                'error',
+                'thinking'
             );
 
-            if (
-                state === 'success' ||
-                state === 'listening'
-            ) {
+            if (state === 'success' || state === 'listening' || state === 'thinking') {
                 orb.classList.add(state);
             }
 
@@ -1397,20 +1489,17 @@
         let introTransitionStarted = false;
 
         function animateTravel(element, startRect, endRect, duration) {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
             const dx = startRect.left - endRect.left;
             const dy = startRect.top - endRect.top;
             const sx = startRect.width / Math.max(endRect.width, 1);
             const sy = startRect.height / Math.max(endRect.height, 1);
 
+            // Individual transform properties preserve the element's own CSS transform.
             element.animate([
-                {
-                    transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-                    transformOrigin: 'top left'
-                },
-                {
-                    transform: 'translate(0, 0) scale(1, 1)',
-                    transformOrigin: 'top left'
-                }
+                { translate: `${dx}px ${dy}px`, scale: `${sx} ${sy}` },
+                { translate: '0px 0px', scale: '1 1' }
             ], {
                 duration,
                 easing: 'cubic-bezier(.22, 1, .36, 1)',
@@ -1728,9 +1817,9 @@
                     event.results[0][0].transcript;
 
                 stopMeter();
-
                 listening = false;
                 mic.classList.remove('listening');
+                setStatus('Voice captured…', 'thinking');
                 executeCommand(spokenCommand);
             };
 
