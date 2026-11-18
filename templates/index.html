@@ -1408,11 +1408,11 @@
             commandsToggle.setAttribute('aria-expanded', String(isOpen));
         });
 
-        /* DEFAULT COMMANDS EXECUTE IMMEDIATELY */
+        /* DEFAULT COMMANDS are explicit local actions: never spend Groq tokens. */
 
         document.querySelectorAll('.default-command').forEach(button => {
             button.addEventListener('click', () => {
-                executeCommand(button.dataset.command);
+                executeCommand(button.dataset.command, 'local');
             });
         });
 
@@ -1593,7 +1593,7 @@
         /* COMMAND EXECUTION */
         let pendingWeatherCity = false;
 
-        async function executeCommand(value) {
+        async function executeCommand(value, requestMode = 'unified') {
             let command = String(value || '').trim();
             if (!command || busy) return;
             if (pendingWeatherCity && /^[a-zA-Z][a-zA-Z .'-]{1,60}$/.test(command)) {
@@ -1614,7 +1614,7 @@
                 let response = await fetch('/api/command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: command, mode: 'unified' })
+                    body: JSON.stringify({ command: command, mode: requestMode })
                 });
                 let data = await response.json();
                 if (data.type === 'answer' && /which city should i check the weather/i.test(data.message || '')) {
