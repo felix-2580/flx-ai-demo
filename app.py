@@ -749,6 +749,24 @@ def weather_search_query(prompt: str):
         return ""
     return f"current weather conditions and forecast for {city} today"
 
+def direct_news_search_query(prompt: str):
+    """Route obvious latest-news requests to Tavily without a Groq intent call."""
+    text = clean_command(prompt)
+    patterns = (
+        r"^(?:what(?:'s| is)\s+)?(?:the\s+)?latest\s+(?:news\s+)?(?:on|about|for)\s+(.+)$",
+        r"^(?:latest|recent|breaking)\s+(.+?)(?:\s+news)?$",
+        r"^(?:show\s+me\s+)?(?:the\s+)?(?:latest\s+)?(?:technology|tech|world|india|business|sports)\s+news(?:\s+today)?$",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            topic = (match.group(1) if match.lastindex else text).strip(" .?!")
+            if topic:
+                return f"latest news about {topic}"[:300]
+    if re.search(r"\b(?:latest|breaking|recent)\b", text) and re.search(r"\b(?:news|headlines)\b", text):
+        return text[:300]
+    return None
+
 
 def answer_with_web_search(prompt: str, query: str, history=None):
     sources, error = tavily_search(query)
@@ -1337,6 +1355,10 @@ def api_command():
             if not weather_query:
                 return respond(answer("Which city should I search for the weather in? For example: 'weather in Chennai'."))
             return respond(answer_with_web_search(prompt, weather_query, history=history))
+
+        news_query = direct_news_search_query(prompt)
+        if news_query is not None:
+            return respond(answer_with_web_search(prompt, news_query, history=history))
 
     direct = direct_action(prompt)
     if direct is not None:
