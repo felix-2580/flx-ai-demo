@@ -912,9 +912,27 @@
                 <span id="welcomeAIStatus">AI service: checking…</span>
                 <span id="welcomeCompanionStatus">Windows Companion: checking…</span>
             </div>
+            <div id="helpDetails" class="welcome-note" hidden>
+                <strong>How to use FLX.AI</strong>
+                <ul>
+                    <li><strong>Type:</strong> Enter a question or command in the message bar and press Enter or Send.</li>
+                    <li><strong>Use your voice:</strong> Select the small glowing reactor beside the message bar, allow microphone access, then speak.</li>
+                    <li><strong>Try examples:</strong> Choose a suggestion below the message bar, or open Default Commands on the left.</li>
+                    <li><strong>Web research:</strong> Ask for latest news, current information or weather. Open Sources to visit the referenced pages.</li>
+                    <li><strong>Windows controls:</strong> Start FLXAI-Companion.exe on the same Windows PC. The status at the top shows whether it is connected.</li>
+                </ul>
+                <strong>Reactor guide</strong>
+                <ul>
+                    <li>Blue — processing or speaking</li>
+                    <li>Purple — listening</li>
+                    <li>Green — command completed</li>
+                    <li>Red — something went wrong</li>
+                    <li>Default blue — ready for a new request</li>
+                </ul>
+            </div>
             <div class="welcome-actions">
                 <button id="getStartedButton" type="button">Get started →</button>
-                <button id="welcomeHelpButton" class="secondary" type="button">How it works</button>
+                <button id="welcomeHelpButton" class="secondary" type="button" aria-expanded="false">How to use FLX.AI</button>
             </div>
             <div class="welcome-foot">FLX.AI uses free-tier APIs with limited usage quotas. Please use it accordingly.</div>
         </section>
@@ -1373,7 +1391,11 @@
 
         document.getElementById('getStartedButton').addEventListener('click', closeWelcome);
         document.getElementById('welcomeHelpButton').addEventListener('click', () => {
-            document.querySelector('.welcome-note').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const details = document.getElementById('helpDetails');
+            const button = document.getElementById('welcomeHelpButton');
+            details.hidden = !details.hidden;
+            button.setAttribute('aria-expanded', String(!details.hidden));
+            button.textContent = details.hidden ? 'How to use FLX.AI' : 'Hide instructions';
         });
         helpButton.addEventListener('click', () => showWelcome(true));
 
