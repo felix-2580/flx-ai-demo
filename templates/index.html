@@ -86,13 +86,10 @@
             font-weight: 500;
         }
 
-        .status {
-            border: 1px solid var(--line);
-            border-radius: 30px;
-            padding: 9px 13px;
-            font-size: 11px;
-            color: #bdd0f5;
-        }
+        .status { border:1px solid var(--line); border-radius:30px; padding:9px 13px; font-size:11px; color:#bdd0f5; }
+        .header-actions { display:flex; align-items:center; gap:9px; }
+        .help-button { border:1px solid var(--line); border-radius:22px; padding:8px 12px; background:#0a1530; color:#bcd5f7; font-size:11px; cursor:pointer; }
+        .help-button:hover { border-color:var(--cyan); color:white; }
 
         .dot {
             display: inline-block;
@@ -783,9 +780,35 @@
             }
         }
 
+        /* FIRST-VISIT WELCOME / HELP */
+        .welcome-backdrop { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:20px; background:rgba(2,6,18,.84); backdrop-filter:blur(14px); }
+        .welcome-backdrop[hidden] { display:none !important; }
+        .welcome-card { width:min(660px,100%); max-height:min(88dvh,760px); overflow:auto; padding:clamp(20px,4vw,34px); border:1px solid #28528a; border-radius:22px; background:linear-gradient(145deg,#0b1a38f5,#090d22f5); box-shadow:0 25px 90px #0009,0 0 45px #167bff22; }
+        .welcome-kicker { color:#42dfff; font-size:10px; letter-spacing:.2em; text-align:center; }
+        .welcome-title { margin:10px 0 8px; text-align:center; font-size:clamp(25px,5vw,38px); }
+        .welcome-copy { max-width:520px; margin:0 auto 20px; text-align:center; color:#a9bee8; font-size:13px; line-height:1.7; }
+        .welcome-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        .welcome-feature { padding:14px; border:1px solid #203b66; border-radius:13px; background:#0a1730; min-width:0; }
+        .welcome-feature strong { display:block; margin:7px 0 4px; font-size:13px; }
+        .welcome-feature span { color:#91a7cf; font-size:11px; line-height:1.55; }
+        .welcome-note { margin-top:13px; padding:12px 14px; border:1px solid #574a28; border-radius:12px; background:#211b102e; color:#d9c99c; font-size:11px; line-height:1.6; }
+        .welcome-status { display:flex; gap:9px; flex-wrap:wrap; margin-top:13px; }
+        .welcome-status span { flex:1; min-width:180px; padding:9px 11px; border:1px solid #203b66; border-radius:9px; color:#9db6dd; font-size:10px; }
+        .welcome-actions { display:flex; justify-content:center; gap:10px; margin-top:20px; }
+        .welcome-actions button { border:1px solid #286ab1; border-radius:22px; padding:11px 20px; background:linear-gradient(120deg,#087edc,#5834c9); color:white; font-size:12px; font-weight:700; cursor:pointer; }
+        .welcome-actions .secondary { background:#0b1932; border-color:#29436c; color:#bdd0f5; }
+        .welcome-foot { margin-top:13px; text-align:center; color:#64799f; font-size:9px; line-height:1.5; }
+        .status-label { color:#a8c2e9; font-size:10px; text-align:center; margin-top:5px; min-height:15px; }
+        .samples button { transition:border-color .18s, color .18s, background .18s; }
+        .samples button:hover { border-color:#3b9fe4; color:#fff; background:#10264a; }
+
         /* RESPONSIVE */
 
         @media (max-width: 600px) {
+            .welcome-grid { grid-template-columns:1fr; }
+            .welcome-card { padding:18px; }
+            .header-actions { gap:5px; }
+            .help-button { padding:7px 9px; }
             .top {
                 height: 65px;
                 min-height: 65px;
@@ -873,6 +896,30 @@
 
 <body class="intro-mode">
 
+    <div class="welcome-backdrop" id="welcomeBackdrop" hidden>
+        <section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+            <div class="welcome-kicker">INTRODUCING YOUR PERSONAL AI ASSISTANT</div>
+            <h1 class="welcome-title" id="welcomeTitle">Welcome to FLX.AI</h1>
+            <p class="welcome-copy">Chat with AI, research current information, or control your Windows PC using natural language or your voice — all from one interface.</p>
+            <div class="welcome-grid">
+                <div class="welcome-feature"><span>✦ AI CHAT</span><strong>Ask almost anything</strong><span>Get explanations, ideas and help with everyday questions.</span></div>
+                <div class="welcome-feature"><span>⌕ WEB RESEARCH</span><strong>Explore current information</strong><span>Ask for recent news, technology updates and weather, with source links.</span></div>
+                <div class="welcome-feature"><span>▣ WINDOWS CONTROL</span><strong>Control your computer</strong><span>Open apps, adjust brightness and volume, manage settings and more.</span></div>
+                <div class="welcome-feature"><span>◉ VOICE MODE</span><strong>Talk instead of typing</strong><span>Use the microphone to speak a question or Windows command.</span></div>
+            </div>
+            <div class="welcome-note"><strong>Important:</strong> Windows controls require FLX.AI Windows Companion to be installed and running on the same Windows PC. AI chat and web research do not require the Companion.</div>
+            <div class="welcome-status">
+                <span id="welcomeAIStatus">AI service: checking…</span>
+                <span id="welcomeCompanionStatus">Windows Companion: checking…</span>
+            </div>
+            <div class="welcome-actions">
+                <button id="getStartedButton" type="button">Get started →</button>
+                <button id="welcomeHelpButton" class="secondary" type="button">How it works</button>
+            </div>
+            <div class="welcome-foot">FLX.AI uses free-tier APIs with limited usage quotas. Please use it accordingly.</div>
+        </section>
+    </div>
+
     <div class="app">
 
         <!-- HEADER -->
@@ -884,9 +931,12 @@
                 <small>VOICE-CONTROLLED WINDOWS ASSISTANT</small>
             </div>
 
-            <div class="status" id="status">
-                <span class="dot" id="dot"></span>
-                <span id="statusText">Checking companion…</span>
+            <div class="header-actions">
+                <div class="status" id="status" title="Windows Companion connection">
+                    <span class="dot" id="dot"></span>
+                    <span id="statusText">Checking Companion…</span>
+                </div>
+                <button class="help-button" id="helpButton" type="button">? Help</button>
             </div>
 
         </header>
@@ -1094,7 +1144,7 @@
                         <input
                             id="command"
                             autocomplete="off"
-                            placeholder="Try “open calculator” or ask a question…"
+                            placeholder="Ask a question or tell FLX.AI what to do…"
                         >
 
                         <button class="btn send" id="send" title="Execute command" aria-label="Execute command">
@@ -1103,15 +1153,17 @@
 
                     </div>
 
-                    <div class="samples-label">QUICK COMMANDS</div>
+                    <div class="samples-label">TRY ASKING FLX.AI — CLICK A SUGGESTION TO RUN IT</div>
 
                     <div class="samples">
-                        <button data-command="open calculator">Calculator</button>
-                        <button data-command="open task manager">Task Manager</button>
-                        <button data-command="open downloads">Downloads</button>
-                        <button data-command="increase volume">Volume up</button>
-                        <button data-command="search Python tutorials">Google search</button>
+                        <button data-command="open calculator">Open Calculator</button>
+                        <button data-command="increase brightness by 10">Increase brightness</button>
+                        <button data-command="What is a GPU?">Ask a question</button>
+                        <button data-command="latest technology news">Latest tech news</button>
+                        <button data-command="weather in Chennai">Weather in Chennai</button>
                     </div>
+
+                    <div class="status-label" id="reactorCaption" aria-live="polite">Ready for your command</div>
 
                     <div class="voice-controls" aria-label="Speech playback controls">
                         <button type="button" id="replaySpeech" disabled>▶ Play response</button>
@@ -1139,6 +1191,11 @@
         const statusText = document.getElementById('statusText');
         const dot = document.getElementById('dot');
         const mic = document.getElementById('mic');
+        const reactorCaption = document.getElementById('reactorCaption');
+        const welcomeBackdrop = document.getElementById('welcomeBackdrop');
+        const welcomeAIStatus = document.getElementById('welcomeAIStatus');
+        const welcomeCompanionStatus = document.getElementById('welcomeCompanionStatus');
+        const helpButton = document.getElementById('helpButton');
 
         const commandsToggle = document.getElementById('commandsToggle');
         const commandsPanel = document.getElementById('commandsPanel');
@@ -1168,8 +1225,12 @@
                 speechObjectUrl = null;
             }
             currentAudio = null;
-            orb.classList.remove('speaking');
             stopSpeechButton.disabled = true;
+            if (lastCommandOutcome) {
+                const outcome = lastCommandOutcome;
+                lastCommandOutcome = null;
+                setStatus(outcome.text, outcome.state, true);
+            } else setStatus('Ready', 'idle');
         }
 
         function stopSpeech() {
@@ -1184,8 +1245,8 @@
                 speechObjectUrl = null;
             }
             if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-            orb.classList.remove('speaking');
             stopSpeechButton.disabled = true;
+            if (statusText.textContent === 'FLX.AI is responding') setStatus('Ready', 'idle');
         }
 
         async function loadKokoro() {
@@ -1253,7 +1314,7 @@
             lastSpokenText = text;
             replaySpeechButton.disabled = false;
             stopSpeechButton.disabled = false;
-            orb.classList.add('speaking');
+            setStatus('FLX.AI is responding', 'speaking');
 
             try {
                 const tts = await loadKokoro();
@@ -1285,6 +1346,36 @@
 
         let statusResetTimer = null;
         let statusVersion = 0;
+        let lastCommandOutcome = null;
+
+        const reactorLabels = {
+            idle: 'Ready for your command',
+            listening: 'Listening to your voice',
+            thinking: 'Processing your request',
+            speaking: 'FLX.AI is responding',
+            success: 'Command completed',
+            error: 'Something went wrong'
+        };
+
+        function showWelcome(force = false) {
+            let seen = false;
+            try { seen = localStorage.getItem('flxai_welcome_seen') === '1'; } catch (_) {}
+            if (force || !seen) welcomeBackdrop.hidden = false;
+            else { welcomeBackdrop.hidden = true; startIntroTransition(); }
+        }
+
+        function closeWelcome() {
+            welcomeBackdrop.hidden = true;
+            try { localStorage.setItem('flxai_welcome_seen', '1'); } catch (_) {}
+            startIntroTransition();
+            input.focus();
+        }
+
+        document.getElementById('getStartedButton').addEventListener('click', closeWelcome);
+        document.getElementById('welcomeHelpButton').addEventListener('click', () => {
+            document.querySelector('.welcome-note').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        helpButton.addEventListener('click', () => showWelcome(true));
 
         /* DEFAULT COMMANDS MENU */
 
@@ -1307,51 +1398,22 @@
 
         function setStatus(text, state = 'idle', autoReset = false) {
             statusVersion++;
-
             const currentVersion = statusVersion;
-
-            if (statusResetTimer) {
-                clearTimeout(statusResetTimer);
-                statusResetTimer = null;
-            }
-
+            if (statusResetTimer) { clearTimeout(statusResetTimer); statusResetTimer = null; }
             statusText.textContent = text;
+            reactorCaption.textContent = reactorLabels[state] || reactorLabels.idle;
 
-            orb.classList.remove(
-                'listening',
-                'success',
-                'error',
-                'thinking'
-            );
+            // Mutually exclusive states prevent a stale red/speaking class persisting.
+            orb.classList.remove('idle', 'listening', 'thinking', 'speaking', 'success', 'error');
+            orb.classList.add(reactorLabels[state] ? state : 'idle');
 
-            if (state === 'success' || state === 'listening' || state === 'thinking') {
-                orb.classList.add(state);
-            }
+            const colors = { idle:'#ffbc55', listening:'#b46bff', thinking:'#20d8ff',
+                speaking:'#20d8ff', success:'#35f6a0', error:'#ff5e86' };
+            dot.style.background = colors[state] || colors.idle;
 
-            if (state === 'success') {
-                dot.style.background = '#35f6a0';
-            } else if (state === 'error') {
-                dot.style.background = '#ff5e86';
-            } else if (state === 'listening') {
-                dot.style.background = '#b46bff';
-            } else if (state === 'thinking') {
-                dot.style.background = '#20d8ff';
-            } else {
-                dot.style.background = '#ffbc55';
-            }
-
-            /*
-             * Return the reactor to its original colour
-             * 2.5 seconds after a successful or failed command.
-             */
-
-            if (autoReset) {
-                statusResetTimer = setTimeout(() => {
-                    if (currentVersion === statusVersion) {
-                        setStatus('Ready', 'idle');
-                    }
-                }, 2500);
-            }
+            if (autoReset) statusResetTimer = setTimeout(() => {
+                if (currentVersion === statusVersion) setStatus('Ready', 'idle');
+            }, 2500);
         }
 
         /* EXECUTION LOG */
@@ -1568,8 +1630,8 @@
                         pending.remove();
                         const companionError = 'Windows Companion is not connected. Start FLXAI-Companion.exe on this same Windows PC and keep it running.';
                         addMessage('ai', companionError);
+                        lastCommandOutcome = { text: 'Companion not connected', state: 'error' };
                         speakText(companionError);
-                        setStatus('Companion not connected', 'idle', true);
                         return;
                     }
                 }
@@ -1578,20 +1640,19 @@
                 const success = data && data.success === true && response.ok !== false;
                 const finalReply = data && data.message ? data.message : 'I couldn’t get a response. Please try again.';
                 addMessage('ai', finalReply, null, data && Array.isArray(data.sources) ? data.sources : []);
-                speakText(finalReply);
 
                 if (data && Object.prototype.hasOwnProperty.call(data, 'success')) {
-                    if (success) setStatus('Command successful', 'success', true);
-                    else setStatus('Command failed', 'idle', true);
-                } else {
-                    setStatus('Ready', 'idle', true);
-                }
+                    lastCommandOutcome = success
+                        ? { text: 'Command completed', state: 'success' }
+                        : { text: 'Something went wrong', state: 'error' };
+                } else lastCommandOutcome = { text: 'Ready', state: 'idle' };
+                speakText(finalReply);
             } catch (error) {
                 pending.remove();
                 const connectionError = 'I couldn’t reach the FLX.AI service. Check your internet connection and try again.';
                 addMessage('ai', connectionError);
+                lastCommandOutcome = { text: 'Connection error', state: 'error' };
                 speakText(connectionError);
-                setStatus('Connection error', 'idle', true);
             } finally {
                 busy = false;
                 send.disabled = false;
@@ -1633,20 +1694,37 @@
                 const data = await response.json();
 
                 if (response.ok && data.ok) {
-                    setStatus(
-                        'Companion v' + (data.version || '?') + ' connected',
-                        'idle'
-                    );
-
+                    setStatus('Companion v' + (data.version || '?') + ' connected', 'idle');
+                    welcomeCompanionStatus.textContent = 'Windows Companion: connected and ready.';
+                    welcomeCompanionStatus.style.borderColor = '#236b55';
                     return;
                 }
 
             } catch (error) {}
 
             setStatus('Web ready • companion offline', 'idle');
+            welcomeCompanionStatus.textContent = 'Windows Companion: not connected — start the desktop app for PC controls.';
+            welcomeCompanionStatus.style.borderColor = '#765b35';
+        }
+
+        async function checkAIService() {
+            try {
+                const response = await fetch('/health', { signal: AbortSignal.timeout(4000) });
+                const data = await response.json();
+                const enabled = response.ok && data.status === 'ok' && data.ai_enabled === true;
+                welcomeAIStatus.textContent = enabled
+                    ? 'AI service: available (' + (data.provider || 'AI') + ')'
+                    : 'AI service: unavailable — check service configuration.';
+                welcomeAIStatus.style.borderColor = enabled ? '#236b55' : '#765b35';
+            } catch (_) {
+                welcomeAIStatus.textContent = 'AI service: website connection unavailable.';
+                welcomeAIStatus.style.borderColor = '#765b35';
+            }
         }
 
         checkCompanion();
+        checkAIService();
+        showWelcome();
 
         /* AUDIO VISUALIZER */
 
