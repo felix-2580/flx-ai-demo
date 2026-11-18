@@ -1205,7 +1205,7 @@ def ask_groq(prompt: str, history=None, system_prompt=None, additional_context=N
         if code == 404:
             return answer(f"None of the discovered models could be used (404): {message}")
         if code == 429:
-            delay_match = re.search(r"try again in\\s*([0-9]+(?:\\.[0-9]+)?)\\s*s", str(message), re.I)
+            delay_match = re.search(r"try again in\s*([0-9]+(?:\.[0-9]+)?)\s*s", str(message), re.I)
             wait_seconds = max(1, int(float(delay_match.group(1)) + 0.99)) if delay_match else None
             if wait_seconds:
                 return answer(f"FLX.AI has temporarily reached Groq's free-tier token limit. Please wait about {wait_seconds} seconds before asking another AI question. Windows commands remain available without Groq.")
