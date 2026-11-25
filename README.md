@@ -11,7 +11,7 @@ FLX.AI is a Flask-based AI assistant with a Groq-powered conversation backend, a
 - Groq summarizes retrieved results; the interface displays an expandable **Sources** section with links to the original pages.
 - Weather questions in AI Mode are routed through web search.
 - Existing local search commands continue to open a browser search through the Windows Companion.
-- Browser voice input and Edge TTS speech output.
+- Browser voice input and local Kokoro speech output with browser speech fallback.
 
 ## Required Render environment variables
 
