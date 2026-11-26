@@ -989,7 +989,8 @@
         @media(max-width:1100px) { .system-panel { display:none; } .main { margin-right:0; } }
         @media(max-width:700px) { .sidebar { width:190px; } .main { margin-left:190px; padding:12px 12px 0; } .workspace-head { gap:8px; min-height:130px; } .visual-stage { width:100px; height:110px; } .ai-visual { transform:scale(.78); } .workspace-copy h1 { font-size:20px; } }
         @media(max-width:520px) { .sidebar { width:54px; padding:12px 6px; } .sidebar-heading,.menu-toggle span:first-child,.sidebar-note { display:none; } .menu-toggle { justify-content:center; padding:12px 5px; } .menu-arrow { display:none; } .main { margin-left:54px; } .commands-panel { position:fixed; top:124px; left:54px; width:245px; max-height:calc(100dvh - 135px); background:#0b101b; border:1px solid #ffffff18; border-radius:12px; padding:12px; z-index:20; } .workspace-head { min-height:110px; } .visual-stage { width:75px; height:90px; } .ai-visual { transform:scale(.62); } .workspace-copy h1 { font-size:17px; } .workspace-copy p { font-size:10px; } .top { padding:0 12px; } .brand { font-size:18px; } .brand small { font-size:7px; } .status { font-size:8px; padding:7px; } .help-button { font-size:9px; } .samples button { font-size:8px; } .palette-footer { display:none; } }
-\n    </style>
+
+    </style>
 </head>
 
 <body>
@@ -1045,7 +1046,8 @@
             <div class="palette-footer"><span>↑ ↓ to browse</span><span>ENTER to run</span><span>CTRL K to open</span></div>
         </section>
     </div>
-\n    <div class="app">
+
+    <div class="app">
 
         <!-- HEADER -->
 
@@ -1261,9 +1263,11 @@
             <button class="quick-action" data-command="show network status">⌁ <span>Network status</span><i>↗</i></button>
             <div class="dashboard-foot">System metrics are shown when provided by the Windows Companion.</div>
         </aside>
-\n        <!-- MAIN INTERFACE -->
 
-        <main class="main">\n
+        <!-- MAIN INTERFACE -->
+
+        <main class="main">
+
             <section class="workspace-head" aria-label="FLX.AI activity">
                 <div class="visual-stage">
                     <div class="ai-visual" id="orb" aria-hidden="true">
@@ -1864,7 +1868,8 @@
 
                 if (response.ok && data.ok) {
                     setStatus('Companion v' + (data.version || '?') + ' connected', 'idle');
-                    dashboardCompanion.textContent = 'Connected';\n                    welcomeCompanionStatus.textContent = 'Windows Companion: connected and ready.';
+                    dashboardCompanion.textContent = 'Connected';
+                    welcomeCompanionStatus.textContent = 'Windows Companion: connected and ready.';
                     welcomeCompanionStatus.style.borderColor = '#236b55';
                     return;
                 }
@@ -1872,7 +1877,8 @@
             } catch (error) {}
 
             setStatus('Web ready • companion offline', 'idle');
-            dashboardCompanion.textContent = 'Offline';\n            welcomeCompanionStatus.textContent = 'Windows Companion: not connected — start the desktop app for PC controls.';
+            dashboardCompanion.textContent = 'Offline';
+            welcomeCompanionStatus.textContent = 'Windows Companion: not connected — start the desktop app for PC controls.';
             welcomeCompanionStatus.style.borderColor = '#765b35';
         }
 
@@ -1881,7 +1887,8 @@
                 const response = await fetch('/health', { signal: AbortSignal.timeout(4000) });
                 const data = await response.json();
                 const enabled = response.ok && data.status === 'ok' && data.ai_enabled === true;
-                dashboardAI.textContent = enabled ? 'Online' : 'Unavailable';\n                welcomeAIStatus.textContent = enabled
+                dashboardAI.textContent = enabled ? 'Online' : 'Unavailable';
+                welcomeAIStatus.textContent = enabled
                     ? 'AI service: available (' + (data.provider || 'AI') + ')'
                     : 'AI service: unavailable — check service configuration.';
                 welcomeAIStatus.style.borderColor = enabled ? '#236b55' : '#765b35';
@@ -1893,7 +1900,96 @@
 
         checkCompanion();
         checkAIService();
-        showWelcome();
+        // Start directly in the workspace; the welcome dialog is available only from Help.
+        document.body.classList.remove('intro-mode');
+
+        /* THEME SETTINGS */
+        const savedTheme = localStorage.getItem('flx-theme');
+        if (savedTheme === 'light') document.body.classList.add('light-theme');
+        const themeButton = document.createElement('button');
+        themeButton.className = 'help-button';
+        themeButton.type = 'button';
+        themeButton.textContent = document.body.classList.contains('light-theme') ? '☾ Theme' : '☼ Theme';
+        document.querySelector('.header-actions').insertBefore(themeButton, helpButton);
+        themeButton.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const light = document.body.classList.contains('light-theme');
+            localStorage.setItem('flx-theme', light ? 'light' : 'dark');
+            themeButton.textContent = light ? '☾ Theme' : '☼ Theme';
+        });
+
+        /* COMMAND PALETTE */
+        const paletteBackdrop = document.getElementById('paletteBackdrop');
+        const paletteSearch = document.getElementById('paletteSearch');
+        const paletteResults = document.getElementById('paletteResults');
+        let paletteItems = [];
+        let paletteIndex = 0;
+        function refreshPalette(query = '') {
+            const q = query.trim().toLowerCase();
+            paletteItems = [...document.querySelectorAll('.default-command, .quick-action')]
+                .filter(el => (el.textContent + ' ' + (el.dataset.command || '')).toLowerCase().includes(q))
+                .slice(0, 30);
+            paletteIndex = 0;
+            paletteResults.replaceChildren();
+            if (!paletteItems.length) {
+                const empty = document.createElement('div');
+                empty.className = 'palette-result';
+                empty.textContent = 'No matching commands';
+                paletteResults.appendChild(empty);
+                return;
+            }
+            paletteItems.forEach((item, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'palette-result' + (index === 0 ? ' selected' : '');
+                const label = document.createElement('span');
+                label.textContent = item.textContent.trim();
+                const hint = document.createElement('small');
+                hint.textContent = 'Run command ↗';
+                button.append(label, hint);
+                button.addEventListener('click', () => runPaletteItem(index));
+                paletteResults.appendChild(button);
+            });
+        }
+        function runPaletteItem(index) {
+            const item = paletteItems[index];
+            if (!item) return;
+            paletteBackdrop.hidden = true;
+            executeCommand(item.dataset.command, 'local');
+        }
+        function openPalette() {
+            paletteBackdrop.hidden = false;
+            paletteSearch.value = '';
+            refreshPalette();
+            paletteSearch.focus();
+        }
+        function closePalette() { paletteBackdrop.hidden = true; input.focus(); }
+        const paletteButton = document.createElement('button');
+        paletteButton.className = 'help-button';
+        paletteButton.type = 'button';
+        paletteButton.textContent = '⌘K';
+        paletteButton.title = 'Command palette (Ctrl+K)';
+        document.querySelector('.header-actions').insertBefore(paletteButton, helpButton);
+        paletteButton.addEventListener('click', openPalette);
+        paletteSearch.addEventListener('input', () => refreshPalette(paletteSearch.value));
+        paletteBackdrop.addEventListener('click', event => { if (event.target === paletteBackdrop) closePalette(); });
+        document.addEventListener('keydown', event => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openPalette(); }
+            if (event.key === 'Escape' && !paletteBackdrop.hidden) closePalette();
+            if (paletteBackdrop.hidden || !['ArrowDown','ArrowUp','Enter'].includes(event.key)) return;
+            const buttons = [...paletteResults.querySelectorAll('.palette-result')];
+            if (!buttons.length) return;
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                paletteIndex = (paletteIndex + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+                buttons.forEach((button, index) => button.classList.toggle('selected', index === paletteIndex));
+                buttons[paletteIndex].scrollIntoView({block:'nearest'});
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                runPaletteItem(paletteIndex);
+            }
+        });
+        dashboardMode.textContent = 'AI + Local';
 
         /* AUDIO VISUALIZER */
 
