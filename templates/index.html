@@ -4,7 +4,7 @@
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#050916">
@@ -891,109 +891,10 @@
                 animation-iteration-count: 1 !important;
             }
         }
-
-        /* PREMIUM FUTURISTIC WORKSPACE */
-        :root {
-            --bg:#080b14; --panel:rgba(18,23,38,.88); --line:rgba(146,164,202,.15);
-            --text:#f3f5fb; --muted:#8994aa; --cyan:#7cdbf4; --green:#6edbb0; --red:#ff8295;
-        }
-        body { background:radial-gradient(ellipse at 48% 0%,#17233a 0,transparent 48%),#080b14; font-family:'Manrope',sans-serif; }
-        .top { height:70px; min-height:70px; padding:0 28px; border-color:#ffffff12; background:#090d16eF; }
-        .brand { font-family:'Space Grotesk',sans-serif; font-size:23px; letter-spacing:-.04em; text-shadow:none; }
-        .brand b { color:#8fdcf1; text-shadow:none; }
-        .brand small { letter-spacing:.13em; color:#8491a9; }
-        .status,.help-button { border-color:#ffffff1b; background:#111827; color:#b9c4d8; }
-        .sidebar { top:70px; width:238px; padding:22px 14px; background:#0b101b; border-color:#ffffff12; }
-        .sidebar-heading,.panel-topline,.eyebrow,.metric-label { color:#79869d; letter-spacing:.16em; font-weight:700; }
-        .menu-toggle { border:1px solid #ffffff17; border-radius:12px; background:#121a29; color:#e4eaf5; }
-        .menu-toggle:hover,.menu-toggle.active { border-color:#80cfe6; background:#172536; box-shadow:none; }
-        .default-command { background:transparent; color:#aab5c9; border-radius:8px; padding:9px 10px; }
-        .default-command:hover { border-color:#ffffff17; background:#182235; color:#fff; transform:none; }
-        .command-category h3 { color:#86cfe2; }
-        .main { width:auto; height:calc(100% - 70px); margin-left:238px; margin-right:264px; padding:18px 30px 0; }
-        .workspace-head { flex:none; display:flex; align-items:center; gap:24px; min-height:170px; padding:6px 12px 12px; border-bottom:1px solid #ffffff10; }
-        .visual-stage { width:156px; height:144px; flex:none; display:grid; place-items:center; }
-        .ai-visual { --level:0; width:118px; height:118px; position:relative; display:grid; place-items:center; isolation:isolate; transition:filter .3s; }
-        .visual-halo { position:absolute; inset:3px; border-radius:50%; background:radial-gradient(circle,#8bdff433 0,transparent 68%); filter:blur(8px); animation:haloBreath 4s ease-in-out infinite; }
-        .halo-two { inset:-9px; opacity:.55; animation-delay:-2s; }
-        .visual-ring { position:absolute; inset:5px; border:1px solid #86dff05e; border-radius:50%; transform:rotateX(68deg) rotateZ(-25deg); animation:spinRing 13s linear infinite; }
-        .ring-two { inset:-5px; border-color:#b49bff66; transform:rotateX(72deg) rotateZ(52deg); animation-duration:17s; animation-direction:reverse; }
-        .visual-core { width:65px; height:65px; display:grid; place-items:center; border-radius:50%; border:1px solid #b2eaf477; background:radial-gradient(circle at 35% 28%,#b9f3ff 0,#529ab8 12%,#1d344a 48%,#101725 78%); box-shadow:0 0 20px #70d7f255,inset 0 0 22px #b7efff55; color:#effcff; font:700 14px 'Space Grotesk'; letter-spacing:.12em; transform:scale(calc(1 + var(--level)*.12)); }
-        .visual-core i { position:absolute; width:4px;height:4px;border-radius:50%;background:#e7ffff;box-shadow:0 0 12px #9beaff; }
-        .visual-particles b { position:absolute; width:4px;height:4px;border-radius:50%;background:#9de7f4;box-shadow:0 0 9px #8dddf3; }
-        .visual-particles b:nth-child(1){top:7%;left:50%}.visual-particles b:nth-child(2){right:8%;top:35%}.visual-particles b:nth-child(3){right:23%;bottom:7%}.visual-particles b:nth-child(4){left:14%;bottom:14%}.visual-particles b:nth-child(5){left:3%;top:38%}.visual-particles b:nth-child(6){right:28%;top:2%}
-        .workspace-copy .eyebrow { font-size:9px; margin-bottom:9px; }
-        .workspace-copy h1 { margin:0; font:600 clamp(23px,2.4vw,31px) 'Space Grotesk'; letter-spacing:-.04em; color:#f0f4fa; }
-        .workspace-copy p { margin:7px 0 0; color:#929eb2; font-size:13px; }
-        .chat { max-width:100%; padding:20px 8px; gap:13px; }
-        .bubble { border-radius:15px; background:#151d2b; border-color:#ffffff13; color:#e3e9f3; font-size:13px; padding:12px 15px; }
-        .message.user .bubble { background:#1a2b3b; border-color:#80cfe633; }
-        .bottom { padding:12px 0 16px; background:linear-gradient(transparent,#080b14 20%); }
-        .composer { max-width:900px; }
-        .shell { border:1px solid #ffffff24; border-radius:17px; background:#121a28; box-shadow:0 10px 35px #0003; padding:7px; }
-        .shell:focus-within { border-color:#8bd8eb; box-shadow:0 0 0 3px #8bd8eb16; }
-        input { font-family:'Manrope',sans-serif; font-size:13px; }
-        .btn { width:40px;height:40px;border-radius:12px;background:#202b3b;border-color:#ffffff17; }
-        .btn.send { background:#d4f2f7; border-color:#d4f2f7; color:#13212c; }
-        #mic { background:#202b3b; border-color:#ffffff17; }
-        .mic-glyph { font-size:25px; line-height:1; color:#a9ddeb; }
-        .samples-label { color:#78869d; }
-        .samples button,.voice-controls button { border-color:#ffffff17; background:#111a28; color:#aebbd0; border-radius:9px; }
-        .samples button:hover,.voice-controls button:hover { border-color:#8bd8eb; color:#fff; background:#19283a; }
-        .status-label { color:#9ca9bc; }
-        .footer { color:#66748b; }
-        .system-panel { position:fixed; top:70px; right:0; bottom:0; width:264px; padding:25px 17px; background:#0b101b; border-left:1px solid #ffffff12; overflow:auto; z-index:3; }
-        .panel-topline { display:flex; justify-content:space-between; font-size:9px; }
-        .live-indicator { color:#72dcb1; letter-spacing:.08em; }
-        .system-panel h2 { font:600 17px 'Space Grotesk'; margin:13px 0 20px; color:#edf2fa; }
-        .dashboard-card { display:flex; gap:12px; align-items:center; padding:13px 10px; margin-bottom:9px; border:1px solid #ffffff12; border-radius:12px; background:#111927; }
-        .dashboard-icon { width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#1d2a3a;color:#a5ddeb;font-size:18px; }
-        .dashboard-card strong { display:block; margin-top:3px; font-size:12px; color:#e5edf7; font-weight:650; }
-        .dashboard-card small { display:block; margin-top:3px; color:#77869d; font-size:9px; }
-        .metric-label { font-size:8px; }
-        .dashboard-divider { height:1px; background:#ffffff12; margin:22px 0 18px; }
-        .quick-action { width:100%; display:flex; align-items:center; gap:10px; padding:11px 9px; margin-top:6px; border:1px solid transparent; border-radius:9px; background:transparent; color:#a9d9e6; text-align:left; cursor:pointer; }
-        .quick-action span { flex:1; color:#b7c2d4; font-size:11px; }
-        .quick-action i { color:#738198; font-style:normal; }
-        .quick-action:hover { background:#172233; border-color:#ffffff12; }
-        .dashboard-foot { margin-top:22px; color:#66748b; font-size:9px; line-height:1.6; }
-        .palette-backdrop { position:fixed; inset:0; z-index:120; display:grid; place-items:start center; padding:16vh 18px 20px; background:#03060bbd; backdrop-filter:blur(8px); }
-        .palette-backdrop[hidden] { display:none !important; }
-        .command-palette { width:min(590px,100%); border:1px solid #ffffff24; border-radius:16px; background:#111a28; box-shadow:0 24px 80px #0009; overflow:hidden; }
-        .palette-search { display:flex; align-items:center; gap:12px; padding:15px; border-bottom:1px solid #ffffff13; color:#9dddec; }
-        .palette-search input { padding:5px; font-size:14px; }
-        .palette-search kbd { color:#7d8ba1; border:1px solid #ffffff1c; border-radius:5px; padding:3px 6px; font-size:9px; }
-        .palette-hint { padding:12px 15px 6px; color:#738198; font-size:9px; letter-spacing:.15em; }
-        .palette-results { max-height: min(48vh,390px); overflow:auto; padding:5px 8px 10px; }
-        .palette-result { display:flex; justify-content:space-between; width:100%; padding:11px 10px; border:0; border-radius:8px; background:transparent; color:#d5dfed; text-align:left; cursor:pointer; font-size:12px; }
-        .palette-result:hover,.palette-result.selected { background:#203247; }
-        .palette-result small { color:#78869b; }
-        .palette-footer { display:flex; justify-content:space-between; padding:10px 14px; border-top:1px solid #ffffff12; color:#748198; font-size:9px; }
-        @keyframes spinRing { to { rotate:360deg; } }
-        @keyframes haloBreath { 0%,100% { opacity:.5; transform:scale(.92); } 50% { opacity:1; transform:scale(1.08); } }
-        .ai-visual.thinking { animation:visualThink 1.2s ease-in-out infinite; }
-        .ai-visual.listening { filter:hue-rotate(35deg) brightness(1.25); }
-        .ai-visual.speaking { filter:hue-rotate(110deg) brightness(1.2); }
-        .ai-visual.success { filter:hue-rotate(75deg) brightness(1.15); }
-        .ai-visual.error { filter:hue-rotate(300deg) saturate(1.2); }
-        @keyframes visualThink { 50% { transform:scale(1.055); } }
-        body.light-theme { color-scheme:light; background:#eef2f7; color:#172033; }
-        body.light-theme .top,body.light-theme .sidebar,body.light-theme .system-panel { background:#f8fafc; border-color:#dce3ec; }
-        body.light-theme .main { color:#172033; }
-        body.light-theme .workspace-copy h1,body.light-theme .system-panel h2 { color:#172033; }
-        body.light-theme .workspace-copy p,body.light-theme .dashboard-card small { color:#64748b; }
-        body.light-theme .dashboard-card,body.light-theme .bubble,body.light-theme .shell,body.light-theme .command-palette { background:#fff; color:#172033; border-color:#dce3ec; }
-        body.light-theme .message.user .bubble { background:#e4f3f8; }
-        body.light-theme .samples button,body.light-theme .voice-controls button,body.light-theme .quick-action { background:#f1f5f9; color:#334155; }
-        body.light-theme .dashboard-card strong { color:#172033; }
-        @media(max-width:1100px) { .system-panel { display:none; } .main { margin-right:0; } }
-        @media(max-width:700px) { .sidebar { width:190px; } .main { margin-left:190px; padding:12px 12px 0; } .workspace-head { gap:8px; min-height:130px; } .visual-stage { width:100px; height:110px; } .ai-visual { transform:scale(.78); } .workspace-copy h1 { font-size:20px; } }
-        @media(max-width:520px) { .sidebar { width:54px; padding:12px 6px; } .sidebar-heading,.menu-toggle span:first-child,.sidebar-note { display:none; } .menu-toggle { justify-content:center; padding:12px 5px; } .menu-arrow { display:none; } .main { margin-left:54px; } .commands-panel { position:fixed; top:124px; left:54px; width:245px; max-height:calc(100dvh - 135px); background:#0b101b; border:1px solid #ffffff18; border-radius:12px; padding:12px; z-index:20; } .workspace-head { min-height:110px; } .visual-stage { width:75px; height:90px; } .ai-visual { transform:scale(.62); } .workspace-copy h1 { font-size:17px; } .workspace-copy p { font-size:10px; } .top { padding:0 12px; } .brand { font-size:18px; } .brand small { font-size:7px; } .status { font-size:8px; padding:7px; } .help-button { font-size:9px; } .samples button { font-size:8px; } .palette-footer { display:none; } }
-
     </style>
 </head>
 
-<body>
+<body class="intro-mode">
 
     <div class="welcome-backdrop" id="welcomeBackdrop" hidden>
         <section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
@@ -1034,16 +935,6 @@
                 <button id="welcomeHelpButton" class="secondary" type="button" aria-expanded="false">How to use FLX.AI</button>
             </div>
             <div class="welcome-foot">FLX.AI uses free-tier APIs with limited usage quotas. Please use it accordingly.</div>
-        </section>
-    </div>
-
-
-    <div class="palette-backdrop" id="paletteBackdrop" hidden>
-        <section class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette">
-            <div class="palette-search"><span>⌕</span><input id="paletteSearch" placeholder="Search commands or actions…" autocomplete="off"><kbd>ESC</kbd></div>
-            <div class="palette-hint">QUICK COMMANDS</div>
-            <div id="paletteResults" class="palette-results"></div>
-            <div class="palette-footer"><span>↑ ↓ to browse</span><span>ENTER to run</span><span>CTRL K to open</span></div>
         </section>
     </div>
 
@@ -1240,52 +1131,9 @@
 
         </aside>
 
-
-        <aside class="system-panel" aria-label="System dashboard">
-            <div class="panel-topline"><span>LIVE OVERVIEW</span><span class="live-indicator">● LIVE</span></div>
-            <h2>System dashboard</h2>
-            <div class="dashboard-card">
-                <div class="dashboard-icon">◈</div>
-                <div><span class="metric-label">AI SERVICE</span><strong id="dashboardAI">Checking…</strong><small>FLX.AI cloud connection</small></div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-icon">⌘</div>
-                <div><span class="metric-label">WINDOWS COMPANION</span><strong id="dashboardCompanion">Checking…</strong><small>Local PC connection</small></div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-icon">◉</div>
-                <div><span class="metric-label">ACTIVE MODE</span><strong id="dashboardMode">AI + Local</strong><small>Automatic command routing</small></div>
-            </div>
-            <div class="dashboard-divider"></div>
-            <div class="panel-topline"><span>QUICK ACCESS</span></div>
-            <button class="quick-action" data-command="show system information">▤ <span>System information</span><i>↗</i></button>
-            <button class="quick-action" data-command="show battery">▰ <span>Battery status</span><i>↗</i></button>
-            <button class="quick-action" data-command="show network status">⌁ <span>Network status</span><i>↗</i></button>
-            <div class="dashboard-foot">System metrics are shown when provided by the Windows Companion.</div>
-        </aside>
-
         <!-- MAIN INTERFACE -->
 
         <main class="main">
-
-            <section class="workspace-head" aria-label="FLX.AI activity">
-                <div class="visual-stage">
-                    <div class="ai-visual" id="orb" aria-hidden="true">
-                        <div class="visual-halo halo-one"></div>
-                        <div class="visual-halo halo-two"></div>
-                        <div class="visual-ring ring-one"></div>
-                        <div class="visual-ring ring-two"></div>
-                        <div class="visual-core"><span>FLX</span><i></i></div>
-                        <div class="visual-particles"><b></b><b></b><b></b><b></b><b></b><b></b></div>
-                    </div>
-                </div>
-                <div class="workspace-copy">
-                    <div class="eyebrow">PERSONAL AI WORKSPACE</div>
-                    <h1>Good to have you here.</h1>
-                    <p>Ask anything. Get things done.</p>
-                </div>
-            </section>
-
 
             
 
@@ -1302,7 +1150,14 @@
                     <div class="shell">
 
                         <button class="btn" id="mic" title="Speak a command" aria-label="Speak a command">
-                            <span class="mic-glyph" aria-hidden="true">⌁</span></button>
+                            <div class="orb" id="orb">
+                        <div class="core">
+                            <div class="wave">
+                                <i></i><i></i><i></i><i></i><i></i>
+                            </div>
+                        </div>
+                    </div>
+                        </button>
 
                         <input
                             id="command"
@@ -1359,12 +1214,6 @@
         const welcomeAIStatus = document.getElementById('welcomeAIStatus');
         const welcomeCompanionStatus = document.getElementById('welcomeCompanionStatus');
         const helpButton = document.getElementById('helpButton');
-        const paletteBackdrop = document.getElementById('paletteBackdrop');
-        const paletteSearch = document.getElementById('paletteSearch');
-        const paletteResults = document.getElementById('paletteResults');
-        const dashboardAI = document.getElementById('dashboardAI');
-        const dashboardCompanion = document.getElementById('dashboardCompanion');
-        const dashboardMode = document.getElementById('dashboardMode');
 
         const commandsToggle = document.getElementById('commandsToggle');
         const commandsPanel = document.getElementById('commandsPanel');
@@ -1868,7 +1717,6 @@
 
                 if (response.ok && data.ok) {
                     setStatus('Companion v' + (data.version || '?') + ' connected', 'idle');
-                    dashboardCompanion.textContent = 'Connected';
                     welcomeCompanionStatus.textContent = 'Windows Companion: connected and ready.';
                     welcomeCompanionStatus.style.borderColor = '#236b55';
                     return;
@@ -1877,7 +1725,6 @@
             } catch (error) {}
 
             setStatus('Web ready • companion offline', 'idle');
-            dashboardCompanion.textContent = 'Offline';
             welcomeCompanionStatus.textContent = 'Windows Companion: not connected — start the desktop app for PC controls.';
             welcomeCompanionStatus.style.borderColor = '#765b35';
         }
@@ -1887,7 +1734,6 @@
                 const response = await fetch('/health', { signal: AbortSignal.timeout(4000) });
                 const data = await response.json();
                 const enabled = response.ok && data.status === 'ok' && data.ai_enabled === true;
-                dashboardAI.textContent = enabled ? 'Online' : 'Unavailable';
                 welcomeAIStatus.textContent = enabled
                     ? 'AI service: available (' + (data.provider || 'AI') + ')'
                     : 'AI service: unavailable — check service configuration.';
@@ -1900,93 +1746,7 @@
 
         checkCompanion();
         checkAIService();
-        // Start directly in the workspace; the welcome dialog is available only from Help.
-        document.body.classList.remove('intro-mode');
-
-        /* THEME SETTINGS */
-        const savedTheme = localStorage.getItem('flx-theme');
-        if (savedTheme === 'light') document.body.classList.add('light-theme');
-        const themeButton = document.createElement('button');
-        themeButton.className = 'help-button';
-        themeButton.type = 'button';
-        themeButton.textContent = document.body.classList.contains('light-theme') ? '☾ Theme' : '☼ Theme';
-        document.querySelector('.header-actions').insertBefore(themeButton, helpButton);
-        themeButton.addEventListener('click', () => {
-            document.body.classList.toggle('light-theme');
-            const light = document.body.classList.contains('light-theme');
-            localStorage.setItem('flx-theme', light ? 'light' : 'dark');
-            themeButton.textContent = light ? '☾ Theme' : '☼ Theme';
-        });
-
-        /* COMMAND PALETTE */
-        let paletteItems = [];
-        let paletteIndex = 0;
-        function refreshPalette(query = '') {
-            const q = query.trim().toLowerCase();
-            paletteItems = [...document.querySelectorAll('.default-command, .quick-action')]
-                .filter(el => (el.textContent + ' ' + (el.dataset.command || '')).toLowerCase().includes(q))
-                .slice(0, 30);
-            paletteIndex = 0;
-            paletteResults.replaceChildren();
-            if (!paletteItems.length) {
-                const empty = document.createElement('div');
-                empty.className = 'palette-result';
-                empty.textContent = 'No matching commands';
-                paletteResults.appendChild(empty);
-                return;
-            }
-            paletteItems.forEach((item, index) => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'palette-result' + (index === 0 ? ' selected' : '');
-                const label = document.createElement('span');
-                label.textContent = item.textContent.trim();
-                const hint = document.createElement('small');
-                hint.textContent = 'Run command ↗';
-                button.append(label, hint);
-                button.addEventListener('click', () => runPaletteItem(index));
-                paletteResults.appendChild(button);
-            });
-        }
-        function runPaletteItem(index) {
-            const item = paletteItems[index];
-            if (!item) return;
-            paletteBackdrop.hidden = true;
-            executeCommand(item.dataset.command, 'local');
-        }
-        function openPalette() {
-            paletteBackdrop.hidden = false;
-            paletteSearch.value = '';
-            refreshPalette();
-            paletteSearch.focus();
-        }
-        function closePalette() { paletteBackdrop.hidden = true; input.focus(); }
-        const paletteButton = document.createElement('button');
-        paletteButton.className = 'help-button';
-        paletteButton.type = 'button';
-        paletteButton.textContent = '⌘K';
-        paletteButton.title = 'Command palette (Ctrl+K)';
-        document.querySelector('.header-actions').insertBefore(paletteButton, helpButton);
-        paletteButton.addEventListener('click', openPalette);
-        paletteSearch.addEventListener('input', () => refreshPalette(paletteSearch.value));
-        paletteBackdrop.addEventListener('click', event => { if (event.target === paletteBackdrop) closePalette(); });
-        document.addEventListener('keydown', event => {
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); openPalette(); }
-            if (event.key === 'Escape' && !paletteBackdrop.hidden) closePalette();
-            if (paletteBackdrop.hidden || !['ArrowDown','ArrowUp','Enter'].includes(event.key)) return;
-            const buttons = [...paletteResults.querySelectorAll('.palette-result')];
-            if (!buttons.length) return;
-            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-                event.preventDefault();
-                paletteIndex = (paletteIndex + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
-                buttons.forEach((button, index) => button.classList.toggle('selected', index === paletteIndex));
-                buttons[paletteIndex].scrollIntoView({block:'nearest'});
-            } else if (event.key === 'Enter') {
-                event.preventDefault();
-                runPaletteItem(paletteIndex);
-            }
-        });
-        dashboardMode.textContent = 'AI + Local';
+        showWelcome();
 
         /* AUDIO VISUALIZER */
 
